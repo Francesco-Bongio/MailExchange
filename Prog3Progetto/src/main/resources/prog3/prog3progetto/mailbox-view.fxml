@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<?import javafx.beans.binding.Binding?>
+<HBox style="-fx-padding: 15px" xmlns="http://javafx.com/javafx/17.0.2-ea"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.prog3lab.prog3_mailservice.MailboxController">
+    <!-- Label "3Mail" -->
+    <Label style="-fx-font-size: 20px;" text="3Mail"/>
+    <!-- Left Side -->
+    <VBox spacing="30" style="-fx-padding: 40 10px 0 -53;"> <!-- Padding on the right -->
+        <Button fx:id="composeButton" onAction="#onCompose" text="Compose" />
+        <Button fx:id="deleteButton" onAction="#onDelete" text="Delete"/>
+        <!-- Placeholder for Inbox count -->
+        <HBox spacing="10">
+            <Label text="Inbox" prefWidth="100" />
+            <Label fx:id="inbox"/>
+        </HBox>
+    </VBox>
+
+    <!-- Right Side -->
+    <Pane fx:id="mailboxPane"> <!-- Placeholder for dynamic content -->
+        <HBox style="-fx-padding: 4 10 10 20">
+            <CheckBox onAction="#selectAllEmails" text="Select All" />
+        </HBox>
+        <HBox style="-fx-padding: 0 0 0 170">
+            <Button fx:id="refresh" text="refresh" onAction="#onRefresh"/>
+        </HBox>
+        <VBox style="-fx-padding: 40 10 10 10">
+            <!-- ListView with checkboxes -->
+            <ListView fx:id="listView" minWidth="500" onMouseClicked="#openEmail"/>
+        </VBox>
+    </Pane>
+</HBox>

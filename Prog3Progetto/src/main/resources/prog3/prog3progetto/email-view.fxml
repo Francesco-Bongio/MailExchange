@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<Pane fx:id="mailboxPane" xmlns="http://javafx.com/javafx/17.0.2-ea"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.prog3lab.prog3_mailservice.EmailController">
+
+    <VBox spacing="10" style="-fx-padding: 15px;">
+        <!-- Top Line -->
+        <HBox spacing="10">
+            <Button text="Back" onAction="#goBackToMailbox" />
+            <Button text="Delete" onAction="#deleteEmail" />
+        </HBox>
+
+        <!-- Subject -->
+        <TextField fx:id="subjectField" promptText="Subject" />
+
+        <!-- Sender Info -->
+        <Label fx:id="senderLabel" />
+        <!-- Receivers -->
+        <TitledPane text="Sent to:" maxHeight="80">
+            <ListView fx:id="recipientsListView"/>
+        </TitledPane>
+        <!-- Message Body -->
+        <TextArea fx:id="messageArea" promptText="Message Body" minHeight="200" />
+
+        <!-- Bottom Buttons -->
+        <HBox spacing="10">
+            <Button text="Reply" onAction="#replyToEmail" />
+            <Button text="Forward" onAction="#forwardEmail" />
+            <Button text="Reply All" onAction="#replyAllToEmail" />
+        </HBox>
+    </VBox>
+</Pane>

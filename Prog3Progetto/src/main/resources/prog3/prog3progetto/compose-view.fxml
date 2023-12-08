@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<Pane fx:id="mailboxPane" xmlns="http://javafx.com/javafx/17.0.2-ea"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.prog3lab.prog3_mailservice.ComposeController">
+
+    <VBox spacing="10" style="-fx-padding: 10 10 10 10">
+        <!-- Receivers Field -->
+        <TextField fx:id="receiversField" promptText="To: " />
+
+        <!-- Subject Field -->
+        <TextField fx:id="subjectField" promptText="Subject: " />
+
+        <!-- Message Body -->
+        <TextArea fx:id="messageArea" promptText="Write your message here..." minHeight="200" />
+
+        <!-- Send Button -->
+        <Button text="Send" onAction="#sendEmail" />
+    </VBox>
+</Pane>
+
