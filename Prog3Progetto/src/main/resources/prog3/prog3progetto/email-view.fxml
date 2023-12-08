@@ -4,13 +4,12 @@
 
 <Pane fx:id="mailboxPane" xmlns="http://javafx.com/javafx/17.0.2-ea"
       xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.prog3lab.prog3_mailservice.EmailController">
+      fx:controller="prog3.prog3progetto.EmailController">
 
     <VBox spacing="10" style="-fx-padding: 15px;">
         <!-- Top Line -->
         <HBox spacing="10">
             <Button text="Back" onAction="#goBackToMailbox" />
-            <Button text="Delete" onAction="#deleteEmail" />
         </HBox>
 
         <!-- Subject -->

@@ -1,5 +1,6 @@
 package prog3.prog3progetto;
 
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -18,6 +19,7 @@ import javafx.util.Callback;
 
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.ResourceBundle;
 import java.io.IOException;
 
@@ -104,7 +106,7 @@ public class MailboxController implements Initializable {
     @FXML
     public void openEmail() {
         try {
-            FXMLLoader emailLoader = new FXMLLoader(getClass().getResource("../../../../../../../../Downloads/email-view.fxml"));
+            FXMLLoader emailLoader = new FXMLLoader(getClass().getResource("email-view.fxml"));
             Node emailContent = emailLoader.load();
 
             // Get the controller associated with the email view if needed

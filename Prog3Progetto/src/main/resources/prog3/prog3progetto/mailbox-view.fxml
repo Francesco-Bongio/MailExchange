@@ -6,7 +6,7 @@
 <?import javafx.beans.binding.Binding?>
 <HBox style="-fx-padding: 15px" xmlns="http://javafx.com/javafx/17.0.2-ea"
       xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.prog3lab.prog3_mailservice.MailboxController">
+      fx:controller="prog3.prog3progetto.MailboxController">
     <!-- Label "3Mail" -->
     <Label style="-fx-font-size: 20px;" text="3Mail"/>
     <!-- Left Side -->

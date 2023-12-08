@@ -30,7 +30,7 @@ public class EmailController {
     @FXML
     public void goBackToMailbox() {
         try {
-            FXMLLoader mailboxLoader = new FXMLLoader(getClass().getResource("../../../../../../../../Downloads/mailbox-view.fxml"));
+            FXMLLoader mailboxLoader = new FXMLLoader(getClass().getResource("mailbox-view.fxml"));
             Node mailboxContent = mailboxLoader.load();
 
             // Get the controller associated with the mailbox view if needed
@@ -44,14 +44,6 @@ public class EmailController {
             // Handle any potential exceptions
         }
     }
-
-
-    // Method to handle deleting the email
-    @FXML
-    public void deleteEmail() {
-        // Implement logic to delete the email
-    }
-
     // Method to handle replying to the email
     @FXML
     public void replyToEmail() {
