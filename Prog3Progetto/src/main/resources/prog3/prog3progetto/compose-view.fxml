@@ -5,11 +5,11 @@
 
 <Pane fx:id="mailboxPane" xmlns="http://javafx.com/javafx/17.0.2-ea"
       xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.prog3lab.prog3_mailservice.ComposeController">
+      fx:controller="prog3.prog3progetto.ComposeController">
 
     <VBox spacing="10" style="-fx-padding: 10 10 10 10">
         <!-- Receivers Field -->
-        <TextField fx:id="receiversField" promptText="To: " />
+        <TextField fx:id="recipientsField" promptText="To: " />
 
         <!-- Subject Field -->
         <TextField fx:id="subjectField" promptText="Subject: " />
