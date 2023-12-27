@@ -29,10 +29,9 @@ public class ComposeController {
             String subject = subjectField.getText();
             String message = messageArea.getText();
 
-            // Assuming sender is obtained from the user's session or context
-            String sender = "user@example.com"; // Replace with actual sender's email
+            String senderEmail = SessionStore.getInstance().getUserEmail();
 
-            Email email = new Email(recipients, sender, subject, message);
+            Email email = new Email(recipients, senderEmail, subject, message);
 
             // Logic to send the email (e.g., via an SMTP server)
 

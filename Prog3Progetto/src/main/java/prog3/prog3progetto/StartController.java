@@ -21,16 +21,17 @@ public class StartController {
             Pattern.compile("^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$");
 
     @FXML
+    // In the StartController's onSubmission() method
     protected void onSubmission() {
         String email = enterEmailText.getText();
-        if (EMAIL_PATTERN.matcher(email).matches()) {
-            if (sendEmailToServer(email)) {
-                openMailboxView();
-            } else {
-                displayError.setText("Invalid email or not registered.");
-            }
-        } else {
-            displayError.setText("Invalid email format.");
+        if (!EMAIL_PATTERN.matcher(email).matches()) {
+            displayError.setText("Invalid email format");
+        } else if (!sendEmailToServer(email)) {
+            displayError.setText("Email not registered");
+        }
+        else {
+            SessionStore.getInstance().setUserEmail(email);
+            openMailboxView();
         }
     }
 
@@ -45,6 +46,7 @@ public class StartController {
 
             String serverResponse = reader.readLine();
             return "VALID".equals(serverResponse);
+
         } catch (IOException e) {
             e.printStackTrace();
             return false;
@@ -56,8 +58,16 @@ public class StartController {
             // Load the Mailbox FXML file
             FXMLLoader loader = new FXMLLoader(getClass().getResource("MailboxView.fxml"));
             Stage stage = (Stage) enterEmailText.getScene().getWindow();
+
+            // Hide the current (StartView) window
+            stage.hide();
+
+            // Set the new scene
             Scene scene = new Scene(loader.load());
             stage.setScene(scene);
+
+            // Optionally, you can show the stage again if you want it to be hidden just during the transition
+            stage.show();
         } catch (IOException e) {
             e.printStackTrace();
             displayError.setText("Error opening the mailbox view.");
