@@ -1,13 +1,15 @@
 package prog3.prog3progetto;
 
+import java.io.Serializable;
 import java.util.List;
 
-public class Email {
+public class Email implements Serializable {
     private boolean selected;
     private List<String> recipients;
     private String sender;
     private String subject;
     private String bodyMessage;
+    private static final long serialVersionUID = 1L;
 
     public Email(List<String> recipients, String sender, String subject, String bodyMessage) {
         this.selected = false;
