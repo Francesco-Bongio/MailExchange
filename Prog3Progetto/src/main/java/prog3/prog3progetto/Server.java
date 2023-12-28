@@ -1,5 +1,7 @@
 package prog3.prog3progetto;
 
+import javafx.application.Platform;
+
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -10,13 +12,20 @@ import java.util.concurrent.TimeUnit;
 
 public class Server {
     private static final int PORT = 12345;
-    private static ServerViewController controller;
+    private ServerViewController controller;
+    private ExecutorService executor;
+    private ServerSocket serverSocket;
     private static final Set<String> VALID_EMAILS = new HashSet<>(
             Arrays.asList("user_1@3mail.com", "user_2@3mail.com", "user_3@3mail.com"));
-    private static final ExecutorService executor = Executors.newFixedThreadPool(10);
 
-    public static void main(String[] args) {
-        try (ServerSocket serverSocket = new ServerSocket(PORT)) {
+    public Server(ServerViewController controller) {
+        this.controller = controller;
+        this.executor = Executors.newFixedThreadPool(10);
+    }
+
+    public void startServer() {
+        try {
+            serverSocket = new ServerSocket(PORT);
             log("Server started, listening on port " + PORT);
 
             while (!Thread.currentThread().isInterrupted()) {
@@ -38,20 +47,32 @@ public class Server {
         }
     }
 
-    private static void handleClient(Socket clientSocket) {
+    public void stopServer() {
+        if (!executor.isShutdown()) {
+            executor.shutdownNow();
+            log("Server is shutting down.");
+        }
+        try {
+            if (serverSocket != null && !serverSocket.isClosed()) {
+                serverSocket.close();
+            }
+        } catch (IOException e) {
+            log("Error closing server socket: " + e.getMessage());
+        }
+    }
+
+    private void handleClient(Socket clientSocket) {
         try (ObjectInputStream objectIn = new ObjectInputStream(clientSocket.getInputStream());
              ObjectOutputStream objectOut = new ObjectOutputStream(clientSocket.getOutputStream())) {
 
             Object obj = objectIn.readObject();
 
             if (obj instanceof String) {
-                // Handling login request
                 String email = (String) obj;
                 boolean isValidEmail = VALID_EMAILS.contains(email);
                 objectOut.writeObject(isValidEmail);
                 log("Login request: " + email + " - Valid: " + isValidEmail);
             } else if (obj instanceof Email) {
-                // Handling email transaction
                 Email email = (Email) obj;
                 processEmail(email);
                 objectOut.writeObject("Email processed");
@@ -68,7 +89,7 @@ public class Server {
         }
     }
 
-    private static void processEmail(Email email) {
+    private void processEmail(Email email) {
         if (email != null && VALID_EMAILS.containsAll(email.getRecipients())) {
             log("Received and processed email from: " + email.getSender());
             // Further processing, like storing the email or forwarding it, goes here
@@ -77,15 +98,16 @@ public class Server {
         }
     }
 
-    private static void log(String message) {
+    private void log(String message) {
         if (controller != null) {
-            controller.logMessage(message);
+            // Ensure GUI updates are done on the JavaFX Application Thread
+            Platform.runLater(() -> controller.logMessage(message));
         } else {
             System.out.println(message); // Fallback to console if controller is not initialized
         }
     }
 
-    private static void shutdownAndAwaitTermination() {
+    private void shutdownAndAwaitTermination() {
         executor.shutdown();
         try {
             if (!executor.awaitTermination(60, TimeUnit.SECONDS)) {
@@ -97,9 +119,5 @@ public class Server {
             executor.shutdownNow();
             Thread.currentThread().interrupt();
         }
-    }
-
-    public static void setController(ServerViewController newController) {
-        controller = newController;
     }
 }
