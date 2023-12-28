@@ -39,9 +39,24 @@ public class Server {
     }
 
     private static void handleClient(Socket clientSocket) {
-        try (ObjectInputStream objectIn = new ObjectInputStream(clientSocket.getInputStream())) {
-            Email email = (Email) objectIn.readObject();
-            processEmail(email);
+        try (ObjectInputStream objectIn = new ObjectInputStream(clientSocket.getInputStream());
+             ObjectOutputStream objectOut = new ObjectOutputStream(clientSocket.getOutputStream())) {
+
+            Object obj = objectIn.readObject();
+
+            if (obj instanceof String) {
+                // Handling login request
+                String email = (String) obj;
+                boolean isValidEmail = VALID_EMAILS.contains(email);
+                objectOut.writeObject(isValidEmail);
+                log("Login request: " + email + " - Valid: " + isValidEmail);
+            } else if (obj instanceof Email) {
+                // Handling email transaction
+                Email email = (Email) obj;
+                processEmail(email);
+                objectOut.writeObject("Email processed");
+            }
+
         } catch (IOException | ClassNotFoundException e) {
             log("Error handling client connection: " + e.getMessage());
         } finally {

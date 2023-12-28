@@ -46,7 +46,7 @@ public class ComposeController {
 
     private boolean sendEmailToServer(Email email) {
         try (Socket socket = new Socket("localhost", 12345);
-             ObjectOutputStream objectOut = new ObjectOutputStream(socket.getOutputStream())) {
+            ObjectOutputStream objectOut = new ObjectOutputStream(socket.getOutputStream())) {
             objectOut.writeObject(email);
             objectOut.flush();
             return true;

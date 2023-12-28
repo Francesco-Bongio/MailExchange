@@ -1,14 +1,13 @@
 package prog3.prog3progetto;
 
-import javafx.scene.Parent;
-import javafx.stage.Stage;
-import javafx.scene.Scene;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
@@ -20,11 +19,17 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import javafx.stage.Stage;
 import javafx.util.Callback;
+
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.URL;
-import java.util.*;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ResourceBundle;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -40,10 +45,12 @@ public class MailboxController implements Initializable {
     @FXML
     private Pane mailboxPane;
 
+    private final ObservableList<Email> emailList = FXCollections.observableArrayList();
     private ScheduledExecutorService reconnectionScheduler;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+        listView.setItems(emailList);
         listView.setCellFactory(new Callback<ListView<Email>, ListCell<Email>>() {
             @Override
             public ListCell<Email> call(ListView<Email> emailListView) {
@@ -69,6 +76,7 @@ public class MailboxController implements Initializable {
                             senderLabel.setText(item.getSender());
                             subjectLabel.setText(item.getSubject());
                             checkBox.setSelected(item.isSelected());
+                            checkBox.setOnAction(event -> item.setSelected(checkBox.isSelected()));
                         }
                     }
                 };
@@ -109,25 +117,37 @@ public class MailboxController implements Initializable {
         alert.showAndWait();
     }
 
+    @FXML
     private void refreshMailbox() {
-        // Logic to refresh the mailbox
+        try (Socket socket = new Socket("localhost", 12345);
+             ObjectOutputStream objectOut = new ObjectOutputStream(socket.getOutputStream());
+             ObjectInputStream objectIn = new ObjectInputStream(socket.getInputStream())) {
+
+            objectOut.writeObject("GET_EMAILS");
+            objectOut.flush();
+
+            Object response = objectIn.readObject();
+            if (response instanceof List) {
+                List<Email> emails = (List<Email>) response;
+                emailList.setAll(emails);
+            } else {
+                showAlert("Error", "Invalid response from server.", Alert.AlertType.ERROR);
+            }
+        } catch (IOException | ClassNotFoundException e) {
+            showAlert("Connection Error", "Failed to connect to the server.", Alert.AlertType.ERROR);
+        }
+
+        updateInboxCounter();
     }
 
     private void updateInboxCounter() {
-        int inboxCounter = listView.getItems().size();
-        inbox.setText(String.valueOf(inboxCounter));
+        int inboxCounter = emailList.size();
+        inbox.setText("Inbox (" + inboxCounter + ")");
     }
 
     @FXML
     public void onDelete() {
-        ObservableList<Email> emails = listView.getItems();
-        Iterator<Email> iterator = emails.iterator();
-        while (iterator.hasNext()) {
-            Email email = iterator.next();
-            if (email.isSelected()) {
-                iterator.remove();
-            }
-        }
+        emailList.removeIf(Email::isSelected);
         updateInboxCounter();
     }
 
@@ -135,20 +155,18 @@ public class MailboxController implements Initializable {
     public void onCompose() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("ComposeView.fxml"));
-            Parent composeView = loader.load();  // Directly cast it here
+            Parent composeView = loader.load();
 
-            // For opening in the same window
             mailboxPane.getChildren().clear();
             mailboxPane.getChildren().add(composeView);
 
             // For opening in a new window, uncomment the following:
-            Stage stage = new Stage();
-            stage.setScene(new Scene(composeView));
-            stage.setTitle("New Email");
-            stage.show();
+            // Stage stage = new Stage();
+            // stage.setScene(new Scene(composeView));
+            // stage.setTitle("New Email");
+            // stage.show();
 
         } catch (IOException e) {
-            e.printStackTrace();
             showAlert("Error", "Cannot open the compose view.", Alert.AlertType.ERROR);
         }
     }
@@ -156,7 +174,7 @@ public class MailboxController implements Initializable {
     @FXML
     public void onRefresh() {
         if (isServerAvailable()) {
-            refreshMailbox(); // Refresh the mailbox if the server is available
+            refreshMailbox();
         } else {
             showAlert("Server Unavailable", "Cannot connect to the server. Attempting to reconnect...", Alert.AlertType.WARNING);
             if (reconnectionScheduler == null || reconnectionScheduler.isShutdown()) {
@@ -164,17 +182,12 @@ public class MailboxController implements Initializable {
             }
         }
     }
-    
+
     @FXML
     public void selectAllEmails() {
-        ObservableList<Email> emails = listView.getItems();
-        boolean allSelected = emails.stream().allMatch(Email::isSelected);
-
-        for (Email email : emails) {
-            email.setSelected(!allSelected); // If all are selected, deselect them, otherwise select all
-        }
-
-        listView.refresh(); // Refresh the ListView to update the UI
+        boolean allSelected = emailList.stream().allMatch(Email::isSelected);
+        emailList.forEach(email -> email.setSelected(!allSelected));
+        listView.refresh();
     }
 
     @FXML

@@ -21,7 +21,6 @@ public class StartController {
             Pattern.compile("^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$");
 
     @FXML
-    // In the StartController's onSubmission() method
     protected void onSubmission() {
         String email = enterEmailText.getText();
         if (!EMAIL_PATTERN.matcher(email).matches()) {
@@ -37,17 +36,17 @@ public class StartController {
 
     private boolean sendEmailToServer(String email) {
         try (Socket socket = new Socket("localhost", 12345);
-             BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-             BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
+             ObjectOutputStream objectOut = new ObjectOutputStream(socket.getOutputStream());
+             ObjectInputStream objectIn = new ObjectInputStream(socket.getInputStream())) {
 
-            writer.write(email);
-            writer.newLine();
-            writer.flush();
+            // Send the email string to the server
+            objectOut.writeObject(email);
+            objectOut.flush();
 
-            String serverResponse = reader.readLine();
-            return "VALID".equals(serverResponse);
+            // Read the response from the server
+             return (Boolean)objectIn.readObject();
 
-        } catch (IOException e) {
+        } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
             return false;
         }
@@ -66,7 +65,6 @@ public class StartController {
             Scene scene = new Scene(loader.load());
             stage.setScene(scene);
 
-            // Optionally, you can show the stage again if you want it to be hidden just during the transition
             stage.show();
         } catch (IOException e) {
             e.printStackTrace();
