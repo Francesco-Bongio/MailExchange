@@ -55,7 +55,7 @@ public class StartController {
     private void openMailboxView() {
         try {
             // Load the Mailbox FXML file
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("MailboxView.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("mailbox-view.fxml"));
             Stage stage = (Stage) enterEmailText.getScene().getWindow();
 
             // Hide the current (StartView) window

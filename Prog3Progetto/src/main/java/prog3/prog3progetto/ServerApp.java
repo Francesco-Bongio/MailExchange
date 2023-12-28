@@ -10,7 +10,7 @@ public class ServerApp extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("ServerView.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("server-view.fxml"));
         Parent root = loader.load();
 
         ServerViewController controller = loader.getController();

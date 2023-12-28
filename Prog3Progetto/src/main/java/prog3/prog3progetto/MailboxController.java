@@ -8,6 +8,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -18,6 +19,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import javafx.stage.Stage;
 import javafx.util.Callback;
 
 import java.io.IOException;
@@ -150,17 +152,17 @@ public class MailboxController implements Initializable {
     @FXML
     public void onCompose() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("ComposeView.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("compose-view.fxml"));
             Parent composeView = loader.load();
 
             mailboxPane.getChildren().clear();
             mailboxPane.getChildren().add(composeView);
 
             // For opening in a new window, uncomment the following:
-            // Stage stage = new Stage();
-            // stage.setScene(new Scene(composeView));
-            // stage.setTitle("New Email");
-            // stage.show();
+            Stage stage = new Stage();
+            stage.setScene(new Scene(composeView));
+            stage.setTitle("New Email");
+            stage.show();
 
         } catch (IOException e) {
             showAlert("Error", "Cannot open the compose view.", Alert.AlertType.ERROR);
