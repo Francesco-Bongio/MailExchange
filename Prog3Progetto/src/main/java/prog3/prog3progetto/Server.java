@@ -1,7 +1,7 @@
 package prog3.prog3progetto;
 
 import javafx.application.Platform;
-
+import java.util.stream.Collectors;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -12,9 +12,10 @@ import java.util.concurrent.TimeUnit;
 
 public class Server {
     private static final int PORT = 12345;
-    private ServerViewController controller;
-    private ExecutorService executor;
+    private final ServerViewController controller;
+    private final ExecutorService executor;
     private ServerSocket serverSocket;
+    private final List<Email> allEmails = new ArrayList<>();
     private static final Set<String> VALID_EMAILS = new HashSet<>(
             Arrays.asList("user_1@3mail.com", "user_2@3mail.com", "user_3@3mail.com"));
 
@@ -67,15 +68,24 @@ public class Server {
 
             Object obj = objectIn.readObject();
 
-            if (obj instanceof String) {
-                String email = (String) obj;
-                boolean isValidEmail = VALID_EMAILS.contains(email);
-                objectOut.writeObject(isValidEmail);
-                log("Login request: " + email + " - Valid: " + isValidEmail);
-            } else if (obj instanceof Email) {
-                Email email = (Email) obj;
-                processEmail(email);
+            if (obj instanceof String request) {
+                if (request.startsWith("GET_EMAILS,")) {
+                    // Handle GET_EMAILS request
+                    String userEmail = request.substring("GET_EMAILS,".length());
+                    List<Email> emails = getEmailsForUser(userEmail); // Implement this method
+                    objectOut.writeObject(emails);
+                    log("Email request for: " + userEmail);
+                } else {
+                    // Handle login request
+                    boolean isValidEmail = VALID_EMAILS.contains(request);
+                    objectOut.writeObject(isValidEmail);
+                    log("Login request: " + request + " - Valid: " + isValidEmail);
+                }
+            } else if (obj instanceof Email email) {
+                // Handle email object
+                processEmail(email); // Implement this method
                 objectOut.writeObject("Email processed");
+                log("Email processed and sent to recipients");
             }
 
         } catch (IOException | ClassNotFoundException e) {
@@ -88,14 +98,27 @@ public class Server {
             }
         }
     }
+    private List<Email> getEmailsForUser(String userEmail) {
+        // Filter and return emails where the user is one of the recipients
+        return allEmails.stream()
+                .filter(email -> email.getRecipients().contains(userEmail))
+                .collect(Collectors.toList());
+    }
 
     private void processEmail(Email email) {
         if (email != null && VALID_EMAILS.containsAll(email.getRecipients())) {
             log("Received and processed email from: " + email.getSender());
-            // Further processing, like storing the email or forwarding it, goes here
+            storeEmail(email); // Store the email
+            // You can add more logic here if you need to "forward" the email to recipients
         } else {
+            assert email != null;
             log("Received email with invalid recipients: " + email.getRecipients());
         }
+    }
+
+    private void storeEmail(Email email) {
+        allEmails.add(email); // Add the email to the collection
+        log("Email stored from: " + email.getSender());
     }
 
     private void log(String message) {

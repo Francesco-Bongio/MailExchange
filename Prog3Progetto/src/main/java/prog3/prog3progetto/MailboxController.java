@@ -93,7 +93,7 @@ public class MailboxController implements Initializable {
             } else {
                 reconnectionScheduler.shutdown();
                 Platform.runLater(() -> {
-                    showAlert("Reconnected", "Reconnected to the server successfully.", Alert.AlertType.INFORMATION);
+                    // showAlert("Reconnected", "Reconnected to the server successfully.", Alert.AlertType.INFORMATION);
                     refreshMailbox(); // Refresh the mailbox upon reconnection
                 });
             }
@@ -118,11 +118,12 @@ public class MailboxController implements Initializable {
 
     @FXML
     private void refreshMailbox() {
+        String userEmail = SessionStore.getInstance().getUserEmail();
         try (Socket socket = new Socket("localhost", 12345);
              ObjectOutputStream objectOut = new ObjectOutputStream(socket.getOutputStream());
              ObjectInputStream objectIn = new ObjectInputStream(socket.getInputStream())) {
 
-            objectOut.writeObject("GET_EMAILS");
+            objectOut.writeObject("GET_EMAILS, " + userEmail);
             objectOut.flush();
 
             Object response = objectIn.readObject();
@@ -155,15 +156,11 @@ public class MailboxController implements Initializable {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("compose-view.fxml"));
             Parent composeView = loader.load();
 
-            mailboxPane.getChildren().clear();
-            mailboxPane.getChildren().add(composeView);
-
-            // For opening in a new window, uncomment the following:
-            Stage stage = new Stage();
-            stage.setScene(new Scene(composeView));
-            stage.setTitle("New Email");
-            stage.show();
-
+            // Create a new window (Stage) for the compose view
+            Stage composeStage = new Stage();
+            composeStage.setScene(new Scene(composeView));
+            composeStage.setTitle("New Email");
+            composeStage.show();
         } catch (IOException e) {
             showAlert("Error", "Cannot open the compose view.", Alert.AlertType.ERROR);
         }

@@ -18,7 +18,7 @@
         <TextArea fx:id="messageArea" promptText="Write your message here..." minHeight="200" />
 
         <!-- Send Button -->
-        <Button text="Send" onAction="#sendEmail" />
+        <Button fx:id="sendButton" text="Send" onAction="#sendEmail" />
     </VBox>
 </Pane>
 

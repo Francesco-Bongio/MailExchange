@@ -2,10 +2,12 @@ package prog3.prog3progetto;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
@@ -21,10 +23,13 @@ public class ComposeController {
     private TextField subjectField;
     @FXML
     private TextArea messageArea;
+    @FXML
+    private Button sendButton;
 
     private static final Pattern EMAIL_PATTERN =
             Pattern.compile("^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$");
 
+    @FXML
     public void sendEmail() {
         List<String> recipients = Arrays.asList(recipientsField.getText().split("\\s*,\\s*"));
         if (validateEmailAddresses(recipients)) {
@@ -33,14 +38,18 @@ public class ComposeController {
             String senderEmail = SessionStore.getInstance().getUserEmail();
 
             Email email = new Email(recipients, senderEmail, subject, message);
-            if (sendEmailToServer(email)) {
-                showAlert("Success", "Email sent successfully!", AlertType.INFORMATION);
-            } else {
+            if (!sendEmailToServer(email)) {
                 showAlert("Error", "Failed to send email.", AlertType.ERROR);
             }
         } else {
-            showAlert("Error", "Invalid email address found.", AlertType.ERROR);
+            showAlert("Error", "Invalid email address.", AlertType.ERROR);
         }
+        closeComposeWindow();
+    }
+
+    private void closeComposeWindow() {
+        Stage stage = (Stage) subjectField.getScene().getWindow();
+        stage.close();
     }
 
     private boolean sendEmailToServer(Email email) {
