@@ -44,7 +44,7 @@ public class StartController {
             objectOut.flush();
 
             // Read the response from the server
-             return (Boolean)objectIn.readObject();
+            return (Boolean) objectIn.readObject();
 
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();

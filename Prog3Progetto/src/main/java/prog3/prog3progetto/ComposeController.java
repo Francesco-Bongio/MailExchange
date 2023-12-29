@@ -10,6 +10,7 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.Arrays;
@@ -47,21 +48,26 @@ public class ComposeController {
         closeComposeWindow();
     }
 
-    private void closeComposeWindow() {
-        Stage stage = (Stage) subjectField.getScene().getWindow();
-        stage.close();
-    }
-
     private boolean sendEmailToServer(Email email) {
         try (Socket socket = new Socket("localhost", 12345);
-            ObjectOutputStream objectOut = new ObjectOutputStream(socket.getOutputStream())) {
+             ObjectOutputStream objectOut = new ObjectOutputStream(socket.getOutputStream());
+             ObjectInputStream objectIn = new ObjectInputStream(socket.getInputStream())) {
+
             objectOut.writeObject(email);
             objectOut.flush();
-            return true;
-        } catch (IOException e) {
+
+            // Read the server's response (assuming the server sends a response)
+            return (Boolean)objectIn.readObject();
+
+        } catch (IOException | ClassNotFoundException e) {
             Platform.runLater(() -> showAlert("Connection Error", "Failed to connect to the server. Please try again later.", Alert.AlertType.ERROR));
             return false;
         }
+    }
+
+    private void closeComposeWindow() {
+        Stage stage = (Stage) subjectField.getScene().getWindow();
+        stage.close();
     }
 
     private boolean validateEmailAddresses(List<String> emailAddresses) {

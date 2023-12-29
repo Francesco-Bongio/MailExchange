@@ -75,6 +75,10 @@ public class Server {
                     List<Email> emails = getEmailsForUser(userEmail); // Implement this method
                     objectOut.writeObject(emails);
                     log("Email request for: " + userEmail);
+                } else if ("PING".equals(request)) {
+                    // Corrected this condition
+                    objectOut.writeObject("PONG");
+                    log("Ping request received");
                 } else {
                     // Handle login request
                     boolean isValidEmail = VALID_EMAILS.contains(request);
@@ -83,13 +87,14 @@ public class Server {
                 }
             } else if (obj instanceof Email email) {
                 // Handle email object
-                processEmail(email); // Implement this method
-                objectOut.writeObject("Email processed");
+                boolean result = processEmail(email); // Implement this method
+                objectOut.writeObject(result);
                 log("Email processed and sent to recipients");
             }
 
         } catch (IOException | ClassNotFoundException e) {
             log("Error handling client connection: " + e.getMessage());
+            e.printStackTrace();
         } finally {
             try {
                 clientSocket.close();
@@ -98,6 +103,7 @@ public class Server {
             }
         }
     }
+
     private List<Email> getEmailsForUser(String userEmail) {
         // Filter and return emails where the user is one of the recipients
         return allEmails.stream()
@@ -105,14 +111,16 @@ public class Server {
                 .collect(Collectors.toList());
     }
 
-    private void processEmail(Email email) {
+    private boolean processEmail(Email email) {
         if (email != null && VALID_EMAILS.containsAll(email.getRecipients())) {
             log("Received and processed email from: " + email.getSender());
             storeEmail(email); // Store the email
             // You can add more logic here if you need to "forward" the email to recipients
+            return true;
         } else {
             assert email != null;
             log("Received email with invalid recipients: " + email.getRecipients());
+            return false;
         }
     }
 

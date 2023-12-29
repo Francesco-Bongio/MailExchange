@@ -81,7 +81,7 @@ public class MailboxController implements Initializable {
                 };
             }
         });
-        updateInboxCounter();
+        // updateInboxCounter();
         initiateReconnectionMechanism();
     }
 
@@ -92,18 +92,24 @@ public class MailboxController implements Initializable {
                 Platform.runLater(() -> showAlert("Reconnection Attempt", "Trying to reconnect to the server...", Alert.AlertType.INFORMATION));
             } else {
                 reconnectionScheduler.shutdown();
-                Platform.runLater(() -> {
-                    // showAlert("Reconnected", "Reconnected to the server successfully.", Alert.AlertType.INFORMATION);
-                    refreshMailbox(); // Refresh the mailbox upon reconnection
-                });
-            }
-        }, 0, 30, TimeUnit.SECONDS); // Attempt to reconnect every 30 seconds
+                // Refresh the mailbox upon reconnection
+                Platform.runLater(this::refreshMailbox);
+           }
+        }, 0, 10, TimeUnit.MINUTES); // Attempt to reconnect every 10 minutes
     }
 
     private boolean isServerAvailable() {
-        try (Socket socket = new Socket("localhost", 12345)) {
-            return true;
-        } catch (IOException e) {
+        try (Socket socket = new Socket("localhost", 12345);
+             ObjectOutputStream objectOut = new ObjectOutputStream(socket.getOutputStream());
+             ObjectInputStream objectIn = new ObjectInputStream(socket.getInputStream())) {
+
+            objectOut.writeObject("PING");
+            objectOut.flush();
+
+            String response = (String) objectIn.readObject();
+            return "PONG".equals(response);
+
+        } catch (IOException | ClassNotFoundException e) {
             return false;
         }
     }
@@ -141,7 +147,7 @@ public class MailboxController implements Initializable {
 
     private void updateInboxCounter() {
         int inboxCounter = emailList.size();
-        inbox.setText("Inbox (" + inboxCounter + ")");
+        inbox.setText(Integer.toString(inboxCounter));
     }
 
     @FXML
