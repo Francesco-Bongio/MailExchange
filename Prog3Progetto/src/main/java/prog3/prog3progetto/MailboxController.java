@@ -95,7 +95,7 @@ public class MailboxController implements Initializable {
                 // Refresh the mailbox upon reconnection
                 Platform.runLater(this::refreshMailbox);
            }
-        }, 0, 10, TimeUnit.MINUTES); // Attempt to reconnect every 10 minutes
+        }, 0, 10, TimeUnit.SECONDS); // Attempt to reconnect every 10 seconds
     }
 
     private boolean isServerAvailable() {
