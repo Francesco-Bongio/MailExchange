@@ -1,5 +1,7 @@
 package prog3.prog3progetto;
 
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import java.io.Serializable;
 import java.util.List;
 
@@ -9,14 +11,13 @@ public class Email implements Serializable {
     private String sender;
     private String subject;
     private String bodyMessage;
-    private static final long serialVersionUID = 1L;
 
     public Email(List<String> recipients, String sender, String subject, String bodyMessage) {
-        this.selected = false;
         this.recipients = recipients;
         this.sender = sender;
         this.subject = subject;
         this.bodyMessage = bodyMessage;
+        this.selected = false;  // Default to not selected
     }
 
     public boolean isSelected() {
@@ -58,4 +59,5 @@ public class Email implements Serializable {
     public void setBodyMessage(String bodyMessage) {
         this.bodyMessage = bodyMessage;
     }
+
 }

@@ -71,12 +71,11 @@ public class Server {
             if (obj instanceof String request) {
                 if (request.startsWith("GET_EMAILS,")) {
                     // Handle GET_EMAILS request
-                    String userEmail = request.substring("GET_EMAILS,".length());
-                    List<Email> emails = getEmailsForUser(userEmail); // Implement this method
+                    String userEmail = request.substring("GET_EMAILS, ".length());
+                    List<Email> emails = getEmailsForUser(userEmail);
                     objectOut.writeObject(emails);
                     log("Email request for: " + userEmail);
                 } else if ("PING".equals(request)) {
-                    // Corrected this condition
                     objectOut.writeObject("PONG");
                     log("Ping request received");
                 } else {
@@ -113,6 +112,7 @@ public class Server {
 
     private boolean processEmail(Email email) {
         if (email != null && VALID_EMAILS.containsAll(email.getRecipients())) {
+            System.out.println(email.getBodyMessage());
             log("Received and processed email from: " + email.getSender());
             storeEmail(email); // Store the email
             // You can add more logic here if you need to "forward" the email to recipients
@@ -126,6 +126,7 @@ public class Server {
 
     private void storeEmail(Email email) {
         allEmails.add(email); // Add the email to the collection
+        System.out.println("recipients of the mail: " + email.getRecipients());
         log("Email stored from: " + email.getSender());
     }
 

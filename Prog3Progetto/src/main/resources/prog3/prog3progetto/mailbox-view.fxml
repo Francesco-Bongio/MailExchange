@@ -8,29 +8,23 @@
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="prog3.prog3progetto.MailboxController">
     <!-- Label "3Mail" -->
-    <Label style="-fx-font-size: 20px;" text="3Mail"/>
-    <!-- Left Side -->
-    <VBox spacing="30" style="-fx-padding: 40 10px 0 -53;"> <!-- Padding on the right -->
+
+    <VBox spacing="30"> <!-- Padding on the right -->
+        <Label style="-fx-font-size: 20px;" text="3Mail"/>
         <Button fx:id="composeButton" onAction="#onCompose" text="Compose" />
+        <Button onAction="#selectAllEmails" text="Select All" />
         <Button fx:id="deleteButton" onAction="#onDelete" text="Delete"/>
         <!-- Placeholder for Inbox count -->
-        <HBox spacing="10">
+        <Button fx:id="refresh" text="refresh" onAction="#onRefresh"/>
+        <HBox spacing="20">
             <Label text="Inbox" prefWidth="100" />
             <Label fx:id="inbox"/>
+            <Region/>
         </HBox>
     </VBox>
 
     <!-- Right Side -->
-    <Pane fx:id="mailboxPane"> <!-- Placeholder for dynamic content -->
-        <HBox style="-fx-padding: 4 10 10 20">
-            <CheckBox onAction="#selectAllEmails" text="Select All" />
-        </HBox>
-        <HBox style="-fx-padding: 0 0 0 170">
-            <Button fx:id="refresh" text="refresh" onAction="#onRefresh"/>
-        </HBox>
-        <VBox style="-fx-padding: 40 10 10 10">
-            <!-- ListView with checkboxes -->
-            <ListView fx:id="listView" minWidth="500" onMouseClicked="#openEmail"/>
-        </VBox>
-    </Pane>
+
+    <!-- ListView with checkboxes -->
+    <ListView fx:id="listView" HBox.hgrow="ALWAYS" onMouseClicked="#openEmail"/>
 </HBox>

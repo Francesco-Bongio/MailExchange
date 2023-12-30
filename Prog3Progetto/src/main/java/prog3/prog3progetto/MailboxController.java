@@ -21,12 +21,14 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.stage.Stage;
 import javafx.util.Callback;
+import javafx.beans.*;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.concurrent.Executors;
@@ -50,52 +52,65 @@ public class MailboxController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         listView.setItems(emailList);
-        listView.setCellFactory(new Callback<ListView<Email>, ListCell<Email>>() {
+        listView.setCellFactory(lv -> new ListCell<Email>() {
+            private final CheckBox checkBox = new CheckBox();
+            private final Label senderLabel = new Label();
+            private final Label subjectLabel = new Label();
+            private final Region spacer = new Region();
+            private final HBox hbox = new HBox(10); // 10 is spacing between elements
+
+            {
+                spacer.setMinWidth(60);
+                spacer.setPrefWidth(60);
+                spacer.setMaxWidth(60);
+
+                hbox.getChildren().addAll(checkBox, senderLabel, spacer, subjectLabel);
+            }
+
             @Override
-            public ListCell<Email> call(ListView<Email> emailListView) {
-                return new ListCell<Email>() {
-                    private final CheckBox checkBox = new CheckBox();
-                    private final Label senderLabel = new Label();
-                    private final Label subjectLabel = new Label();
-                    private final Region spacer = new Region();
-
-                    {
-                        HBox.setHgrow(spacer, Priority.ALWAYS);
-                        HBox hbox = new HBox(10, checkBox, senderLabel, spacer, subjectLabel);
-                        setGraphic(hbox);
-                    }
-
-                    @Override
-                    protected void updateItem(Email item, boolean empty) {
-                        super.updateItem(item, empty);
-                        if (empty || item == null) {
-                            setText(null);
-                            setGraphic(null);
-                        } else {
-                            senderLabel.setText(item.getSender());
-                            subjectLabel.setText(item.getSubject());
-                            checkBox.setSelected(item.isSelected());
-                            checkBox.setOnAction(event -> item.setSelected(checkBox.isSelected()));
-                        }
-                    }
-                };
+            protected void updateItem(Email email, boolean empty) {
+                super.updateItem(email, empty);
+                if (empty || email == null) {
+                    setGraphic(null);
+                } else {
+                    checkBox.setSelected(email.isSelected());
+                    checkBox.setOnAction(e -> email.setSelected(checkBox.isSelected()));
+                    // Set the text for sender and subject labels
+                    senderLabel.setText(email.getSender());
+                    subjectLabel.setText(email.getSubject());
+                    setGraphic(hbox); // Set the HBox as the graphic of the cell
+                }
             }
         });
-        // updateInboxCounter();
-        initiateReconnectionMechanism();
+        populateWithStaticData(); // Populate ListView with static data for testing
+        updateInboxCounter();
+        //initiateReconnectionMechanism();
+    }
+
+    //test with static data
+    private void populateWithStaticData() {
+        List<Email> staticEmails = List.of(
+                new Email(List.of("recipient1@example.com"), "sender@example.com", "Subject 1", "Body of email 1"),
+                new Email(List.of("recipient2@example.com"), "sender@example.com", "Subject 2", "Body of email 2"),
+                new Email(List.of("recipient3@example.com"), "sender@example.com", "Subject 3", "Body of email 3")
+        );
+        emailList.setAll(staticEmails);
     }
 
     private void initiateReconnectionMechanism() {
         reconnectionScheduler = Executors.newSingleThreadScheduledExecutor();
         reconnectionScheduler.scheduleAtFixedRate(() -> {
-            if (!isServerAvailable()) {
-                Platform.runLater(() -> showAlert("Reconnection Attempt", "Trying to reconnect to the server...", Alert.AlertType.INFORMATION));
-            } else {
-                reconnectionScheduler.shutdown();
-                // Refresh the mailbox upon reconnection
-                Platform.runLater(this::refreshMailbox);
-           }
-        }, 0, 10, TimeUnit.SECONDS); // Attempt to reconnect every 10 seconds
+            try {
+                if (!isServerAvailable()) {
+                    Platform.runLater(() -> showAlert("Reconnection Attempt", "Trying to reconnect to the server...", Alert.AlertType.INFORMATION));
+                } else {
+                    // Refresh the mailbox upon reconnection
+                    Platform.runLater(this::refreshMailbox);
+                }
+            } catch (Exception e) {
+                e.printStackTrace(); // Log the exception
+            }
+        }, 0, 15, TimeUnit.MINUTES);
     }
 
     private boolean isServerAvailable() {
@@ -133,9 +148,9 @@ public class MailboxController implements Initializable {
             objectOut.flush();
 
             Object response = objectIn.readObject();
-            if (response instanceof List) {
-                List<Email> emails = (List<Email>) response;
-                emailList.setAll(emails);
+            if (response instanceof List<?> list) {
+                List<Email> emails = (List<Email>) list;
+                emailList.addAll(emails);
             } else {
                 showAlert("Error", "Invalid response from server.", Alert.AlertType.ERROR);
             }
@@ -186,19 +201,22 @@ public class MailboxController implements Initializable {
 
     @FXML
     public void selectAllEmails() {
+        // Check if all emails are currently selected
         boolean allSelected = emailList.stream().allMatch(Email::isSelected);
-        emailList.forEach(email -> email.setSelected(!allSelected));
+
+        // If all are selected, deselect all; otherwise, select all
+        for (Email email : emailList) {
+            email.setSelected(!allSelected);
+        }
         listView.refresh();
     }
+
 
     @FXML
     public void openEmail() {
         try {
             FXMLLoader emailLoader = new FXMLLoader(getClass().getResource("email-view.fxml"));
             Node emailContent = emailLoader.load();
-
-            EmailController emailController = emailLoader.getController();
-
             mailboxPane.getChildren().clear();
             mailboxPane.getChildren().add(emailContent);
         } catch (IOException e) {
