@@ -104,10 +104,11 @@ public class Server {
     }
 
     private List<Email> getEmailsForUser(String userEmail) {
-        // Filter and return emails where the user is one of the recipients
-        return allEmails.stream()
+        List<Email> emailsForUser = allEmails.stream()
                 .filter(email -> email.getRecipients().contains(userEmail))
                 .collect(Collectors.toList());
+        allEmails.removeAll(emailsForUser);
+        return emailsForUser;
     }
 
     private boolean processEmail(Email email) {
@@ -115,7 +116,6 @@ public class Server {
             System.out.println(email.getBodyMessage());
             log("Received and processed email from: " + email.getSender());
             storeEmail(email); // Store the email
-            // You can add more logic here if you need to "forward" the email to recipients
             return true;
         } else {
             assert email != null;
@@ -124,10 +124,17 @@ public class Server {
         }
     }
 
-    private void storeEmail(Email email) {
-        allEmails.add(email); // Add the email to the collection
-        System.out.println("recipients of the mail: " + email.getRecipients());
-        log("Email stored from: " + email.getSender());
+    private void storeEmail(Email originalEmail) {
+        for (String recipient : originalEmail.getRecipients()) {
+            Email emailCopy = new Email(
+                    Collections.singletonList(recipient),
+                    originalEmail.getSender(),
+                    originalEmail.getSubject(),
+                    originalEmail.getBodyMessage()
+            );
+            allEmails.add(emailCopy);
+        }
+        log("Email stored from: " + originalEmail.getSender());
     }
 
     private void log(String message) {

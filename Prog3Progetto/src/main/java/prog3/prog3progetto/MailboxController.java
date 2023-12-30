@@ -203,7 +203,6 @@ public class MailboxController implements Initializable {
     public void selectAllEmails() {
         // Check if all emails are currently selected
         boolean allSelected = emailList.stream().allMatch(Email::isSelected);
-
         // If all are selected, deselect all; otherwise, select all
         for (Email email : emailList) {
             email.setSelected(!allSelected);
