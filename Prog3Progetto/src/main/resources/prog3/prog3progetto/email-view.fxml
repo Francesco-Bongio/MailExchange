@@ -2,15 +2,15 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<Pane fx:id="mailboxPane" xmlns="http://javafx.com/javafx/17.0.2-ea"
+<Pane xmlns="http://javafx.com/javafx/17.0.2-ea"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="prog3.prog3progetto.EmailController">
 
     <VBox spacing="10" style="-fx-padding: 15px;">
         <!-- Top Line -->
-        <HBox spacing="10">
+        <!-- <HBox spacing="10">
             <Button text="Back" onAction="#goBackToMailbox" />
-        </HBox>
+        </HBox> -->
 
         <!-- Subject -->
         <TextField fx:id="subjectField" promptText="Subject" />

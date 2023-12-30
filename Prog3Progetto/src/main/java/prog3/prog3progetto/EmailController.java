@@ -22,29 +22,19 @@ public class EmailController {
     @FXML
     private TextArea messageArea;
     @FXML
-    private Pane mailboxPane;
-    @FXML
     private ListView<String> recipientsListView;
 
-    // Method to handle going back to the mailbox view
-    @FXML
-    public void goBackToMailbox() {
-        try {
-            FXMLLoader mailboxLoader = new FXMLLoader(getClass().getResource("mailbox-view.fxml"));
-            Node mailboxContent = mailboxLoader.load();
+    public void setEmail(Email email) {
+        if (email != null) {
+            senderLabel.setText(email.getSender());
+            subjectField.setText(email.getSubject());
+            messageArea.setText(email.getBodyMessage());
 
-            // Get the controller associated with the mailbox view if needed
-            MailboxController mailboxController = mailboxLoader.getController();
-
-            // Replace the current email view with the mailbox view content
-            mailboxPane.getChildren().clear();
-            mailboxPane.getChildren().add(mailboxContent);
-        } catch (IOException e) {
-            e.printStackTrace();
-            // Handle any potential exceptions
+            // Clear the current recipients and add the new ones
+            recipientsListView.getItems().clear();
+            recipientsListView.getItems().addAll(email.getRecipients());
         }
     }
-    // Method to handle replying to the email
     @FXML
     public void replyToEmail() {
         // Implement logic for replying to the email

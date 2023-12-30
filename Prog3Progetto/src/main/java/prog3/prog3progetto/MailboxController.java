@@ -84,7 +84,7 @@ public class MailboxController implements Initializable {
         });
         populateWithStaticData(); // Populate ListView with static data for testing
         updateInboxCounter();
-        //initiateReconnectionMechanism();
+        initiateReconnectionMechanism();
     }
 
     //test with static data
@@ -213,14 +213,23 @@ public class MailboxController implements Initializable {
 
     @FXML
     public void openEmail() {
-        try {
-            FXMLLoader emailLoader = new FXMLLoader(getClass().getResource("email-view.fxml"));
-            Node emailContent = emailLoader.load();
-            mailboxPane.getChildren().clear();
-            mailboxPane.getChildren().add(emailContent);
-        } catch (IOException e) {
-            e.printStackTrace();
-            // Handle any potential exceptions
+        Email selectedEmail = listView.getSelectionModel().getSelectedItem();
+        if (selectedEmail != null) {
+            try {
+                FXMLLoader emailLoader = new FXMLLoader(getClass().getResource("email-view.fxml"));
+                Node emailContent = emailLoader.load();
+
+                // If you need to pass the selected email to the email view controller
+                EmailController emailController = emailLoader.getController();
+                emailController.setEmail(selectedEmail); // Ensure you have a method setEmail in EmailController
+
+                Stage stage = new Stage();
+                stage.setScene(new Scene((Parent) emailContent));
+                stage.setTitle("Email Details");
+                stage.show();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 }
