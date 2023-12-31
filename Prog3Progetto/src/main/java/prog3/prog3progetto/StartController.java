@@ -64,6 +64,9 @@ public class StartController {
             // Set the new scene
             Scene scene = new Scene(loader.load());
             stage.setScene(scene);
+            stage.setWidth(600);
+            stage.setHeight(400);
+            stage.setTitle("3Mail");
 
             stage.show();
         } catch (IOException e) {

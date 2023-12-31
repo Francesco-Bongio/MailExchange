@@ -1,9 +1,9 @@
 package prog3.prog3progetto;
 
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class Email implements Serializable {
     private boolean selected;
@@ -11,6 +11,7 @@ public class Email implements Serializable {
     private String sender;
     private String subject;
     private String bodyMessage;
+    private Set<String> recipientsReceived;
 
     public Email(List<String> recipients, String sender, String subject, String bodyMessage) {
         this.recipients = recipients;
@@ -18,6 +19,7 @@ public class Email implements Serializable {
         this.subject = subject;
         this.bodyMessage = bodyMessage;
         this.selected = false;  // Default to not selected
+        recipientsReceived = new HashSet<>();
     }
 
     public boolean isSelected() {
@@ -59,5 +61,13 @@ public class Email implements Serializable {
     public void setBodyMessage(String bodyMessage) {
         this.bodyMessage = bodyMessage;
     }
-
+    public boolean hasReceived(String recipient) {
+        return recipientsReceived.contains(recipient);
+    }
+    public void markAsReceived(String recipient) {
+        recipientsReceived.add(recipient);
+    }
+    public Set<String> getRecipientsReceived() {
+        return recipientsReceived;
+    }
 }

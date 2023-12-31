@@ -1,7 +1,7 @@
 package prog3.prog3progetto;
 
 import javafx.application.Platform;
-import java.util.stream.Collectors;
+
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -103,14 +103,6 @@ public class Server {
         }
     }
 
-    private List<Email> getEmailsForUser(String userEmail) {
-        List<Email> emailsForUser = allEmails.stream()
-                .filter(email -> email.getRecipients().contains(userEmail))
-                .collect(Collectors.toList());
-        allEmails.removeAll(emailsForUser);
-        return emailsForUser;
-    }
-
     private boolean processEmail(Email email) {
         if (email != null && VALID_EMAILS.containsAll(email.getRecipients())) {
             System.out.println(email.getBodyMessage());
@@ -124,17 +116,28 @@ public class Server {
         }
     }
 
-    private void storeEmail(Email originalEmail) {
-        for (String recipient : originalEmail.getRecipients()) {
-            Email emailCopy = new Email(
-                    Collections.singletonList(recipient),
-                    originalEmail.getSender(),
-                    originalEmail.getSubject(),
-                    originalEmail.getBodyMessage()
-            );
-            allEmails.add(emailCopy);
+    private synchronized List<Email> getEmailsForUser(String userEmail) {
+        List<Email> emailsForUser = new ArrayList<>();
+        Iterator<Email> iterator = allEmails.iterator();
+
+        while (iterator.hasNext()) {
+            Email email = iterator.next();
+            if (email.getRecipients().contains(userEmail) && !email.hasReceived(userEmail)) {
+                emailsForUser.add(email);
+                email.markAsReceived(userEmail);
+
+                if (email.getRecipientsReceived().containsAll(email.getRecipients())) {
+                    iterator.remove(); // Safe removal during iteration
+                }
+            }
         }
-        log("Email stored from: " + originalEmail.getSender());
+        return emailsForUser;
+    }
+
+
+    private synchronized void storeEmail(Email email) {
+        allEmails.add(email); // Add the email to the collection
+        log("Email stored from: " + email.getSender());
     }
 
     private void log(String message) {
