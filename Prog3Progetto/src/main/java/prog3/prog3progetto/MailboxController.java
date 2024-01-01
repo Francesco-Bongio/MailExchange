@@ -17,18 +17,13 @@ import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.stage.Stage;
-import javafx.util.Callback;
-import javafx.beans.*;
-
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.concurrent.Executors;
@@ -60,11 +55,9 @@ public class MailboxController implements Initializable {
             private final HBox hbox = new HBox(10); // 10 is spacing between elements
 
             {
-                spacer.setMinWidth(60);
-                spacer.setPrefWidth(60);
-                spacer.setMaxWidth(60);
-
-                hbox.getChildren().addAll(checkBox, senderLabel, spacer, subjectLabel);
+                senderLabel.setPrefWidth(220);
+                spacer.setPrefWidth(100);
+                hbox.getChildren().addAll(checkBox, senderLabel, subjectLabel);
             }
 
             @Override
@@ -75,7 +68,6 @@ public class MailboxController implements Initializable {
                 } else {
                     checkBox.setSelected(email.isSelected());
                     checkBox.setOnAction(e -> email.setSelected(checkBox.isSelected()));
-                    // Set the text for sender and subject labels
                     senderLabel.setText(email.getSender());
                     subjectLabel.setText(email.getSubject());
                     setGraphic(hbox); // Set the HBox as the graphic of the cell
@@ -110,7 +102,7 @@ public class MailboxController implements Initializable {
             } catch (Exception e) {
                 e.printStackTrace(); // Log the exception
             }
-        }, 0, 15, TimeUnit.MINUTES);
+        }, 0, 10, TimeUnit.MINUTES);
     }
 
     private boolean isServerAvailable() {
@@ -127,14 +119,6 @@ public class MailboxController implements Initializable {
         } catch (IOException | ClassNotFoundException e) {
             return false;
         }
-    }
-
-    private void showAlert(String title, String content, Alert.AlertType type) {
-        Alert alert = new Alert(type);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(content);
-        alert.showAndWait();
     }
 
     @FXML
@@ -231,5 +215,13 @@ public class MailboxController implements Initializable {
                 e.printStackTrace();
             }
         }
+    }
+
+    private void showAlert(String title, String content, Alert.AlertType type) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+        alert.showAndWait();
     }
 }

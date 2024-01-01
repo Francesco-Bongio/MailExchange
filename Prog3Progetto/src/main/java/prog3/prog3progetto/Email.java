@@ -11,7 +11,7 @@ public class Email implements Serializable {
     private String sender;
     private String subject;
     private String bodyMessage;
-    private Set<String> recipientsReceived;
+    private final Set<String> recipientsReceived;
 
     public Email(List<String> recipients, String sender, String subject, String bodyMessage) {
         this.recipients = recipients;

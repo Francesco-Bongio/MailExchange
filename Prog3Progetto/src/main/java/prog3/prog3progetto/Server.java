@@ -1,7 +1,6 @@
 package prog3.prog3progetto;
 
 import javafx.application.Platform;
-
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;

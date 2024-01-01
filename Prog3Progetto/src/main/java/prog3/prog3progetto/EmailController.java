@@ -29,7 +29,6 @@ public class EmailController {
             senderLabel.setText(email.getSender());
             subjectField.setText(email.getSubject());
             messageArea.setText(email.getBodyMessage());
-
             // Clear the current recipients and add the new ones
             recipientsListView.getItems().clear();
             recipientsListView.getItems().addAll(email.getRecipients());
