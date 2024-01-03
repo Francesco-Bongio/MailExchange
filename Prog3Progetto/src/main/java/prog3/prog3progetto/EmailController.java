@@ -1,16 +1,24 @@
 package prog3.prog3progetto;
 
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
 import javafx.scene.layout.Pane;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.Socket;
 import java.security.cert.PolicyNode;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class EmailController {
@@ -36,18 +44,76 @@ public class EmailController {
     }
     @FXML
     public void replyToEmail() {
-        // Implement logic for replying to the email
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("compose-view.fxml"));
+            Parent composeView = loader.load();
+            ComposeController composeController= loader.getController();
+            composeController.setRecipientsField(senderLabel.getText());
+            composeController.setSubjectField("RE: "+ subjectField.getText());
+
+            // Create a new window (Stage) for the compose view
+            Stage composeStage = new Stage();
+            composeStage.setScene(new Scene(composeView));
+            composeStage.setTitle("New Email");
+            composeStage.show();
+        } catch (IOException e) {
+            showAlert("Error", "Cannot open the compose view.", Alert.AlertType.ERROR);
+        }
+    }
+
+    private void closeEmailWindow() {
+        Stage stage = (Stage) subjectField.getScene().getWindow();
+        stage.close();
     }
 
     // Method to handle forwarding the email
     @FXML
     public void forwardEmail() {
-        // Implement logic for forwarding the email
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("compose-view.fxml"));
+            Parent composeView = loader.load();
+            ComposeController composeController= loader.getController();
+            composeController.setSubjectField(subjectField.getText());
+            composeController.setMessageArea(messageArea.getText());
+
+            // Create a new window (Stage) for the compose view
+            Stage composeStage = new Stage();
+            composeStage.setScene(new Scene(composeView));
+            composeStage.setTitle("New Email");
+            composeStage.show();
+        } catch (IOException e) {
+            showAlert("Error", "Cannot open the compose view.", Alert.AlertType.ERROR);
+        }
     }
 
     // Method to handle replying to all recipients of the email
     @FXML
     public void replyAllToEmail() {
         // Implement logic for replying to all recipients of the email
+    }
+
+    private boolean sendEmailToServer(Email email) {
+        try (Socket socket = new Socket("localhost", 12345);
+             ObjectOutputStream objectOut = new ObjectOutputStream(socket.getOutputStream());
+             ObjectInputStream objectIn = new ObjectInputStream(socket.getInputStream())) {
+
+            objectOut.writeObject(email);
+            objectOut.flush();
+
+            // Read the server's response (assuming the server sends a response)
+            return (Boolean)objectIn.readObject();
+
+        } catch (IOException | ClassNotFoundException e) {
+            Platform.runLater(() -> showAlert("Connection Error", "Failed to connect to the server. Please try again later.", Alert.AlertType.ERROR));
+            return false;
+        }
+    }
+
+    private void showAlert(String title, String content, Alert.AlertType type) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+        alert.showAndWait();
     }
 }

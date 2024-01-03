@@ -82,4 +82,16 @@ public class ComposeController {
         alert.setContentText(content);
         alert.showAndWait();
     }
+
+    public void setRecipientsField(String subject) {
+        recipientsField.setText(subject);
+    }
+
+    public void setSubjectField(String subject){
+        subjectField.setText(subject);
+    }
+
+    public void setMessageArea(String text){
+        messageArea.setText(text);
+    }
 }
