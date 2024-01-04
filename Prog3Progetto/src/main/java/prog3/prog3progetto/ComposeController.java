@@ -15,6 +15,7 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 public class ComposeController {
@@ -85,6 +86,19 @@ public class ComposeController {
 
     public void setRecipientsField(String subject) {
         recipientsField.setText(subject);
+    }
+
+    public String getRecipientsField(){
+        return recipientsField.getText();
+    }
+
+    public void addRecipientsField(String subject){
+        if(Objects.equals(recipientsField.getText(), "")) {
+            recipientsField.setText(subject);
+        }
+        else{
+            recipientsField.setText(getRecipientsField()+","+subject);
+        }
     }
 
     public void setSubjectField(String subject){

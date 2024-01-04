@@ -17,9 +17,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.security.cert.PolicyNode;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public class EmailController {
 
@@ -89,9 +87,34 @@ public class EmailController {
     // Method to handle replying to all recipients of the email
     @FXML
     public void replyAllToEmail() {
-        // Implement logic for replying to all recipients of the email
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("compose-view.fxml"));
+            Parent composeView = loader.load();
+            ComposeController composeController= loader.getController();
+            composeController.setSubjectField("RE: " + subjectField.getText());
+            //composeController.setMessageArea(messageArea.getText());
+            List<String> destinatari;
+            destinatari=recipientsListView.getItems();
+            String io = SessionStore.getInstance().getUserEmail();
+            for (String s : destinatari) {
+                if (!Objects.equals(s, io)) {
+                    composeController.addRecipientsField(s);
+                }
+            }
+            composeController.addRecipientsField(senderLabel.getText());
+
+
+            // Create a new window (Stage) for the compose view
+            Stage composeStage = new Stage();
+            composeStage.setScene(new Scene(composeView));
+            composeStage.setTitle("New Email");
+            composeStage.show();
+        } catch (IOException e) {
+            showAlert("Error", "Cannot open the compose view.", Alert.AlertType.ERROR);
+        }
     }
 
+    /*
     private boolean sendEmailToServer(Email email) {
         try (Socket socket = new Socket("localhost", 12345);
              ObjectOutputStream objectOut = new ObjectOutputStream(socket.getOutputStream());
@@ -108,6 +131,7 @@ public class EmailController {
             return false;
         }
     }
+    */
 
     private void showAlert(String title, String content, Alert.AlertType type) {
         Alert alert = new Alert(type);

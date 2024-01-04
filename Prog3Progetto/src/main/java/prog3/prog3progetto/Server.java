@@ -16,7 +16,7 @@ public class Server {
     private ServerSocket serverSocket;
     private final List<Email> allEmails = new ArrayList<>();
     private static final Set<String> VALID_EMAILS = new HashSet<>(
-            Arrays.asList("user_1@3mail.com", "user_2@3mail.com", "user_3@3mail.com"));
+            Arrays.asList("user_1@3mail.com", "user_2@3mail.com", "user_3@3mail.com", "user_4@3mail.com"));
 
     public Server(ServerViewController controller) {
         this.controller = controller;
