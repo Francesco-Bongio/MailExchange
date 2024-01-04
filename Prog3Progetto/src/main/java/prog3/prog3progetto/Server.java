@@ -21,7 +21,10 @@ public class Server {
     public Server(ServerViewController controller) {
         this.controller = controller;
         this.executor = Executors.newFixedThreadPool(10);
+        // Carica le email dal file quando il server viene avviato
+        loadEmailsFromFile();
     }
+
 
     public void startServer() {
         try {
@@ -135,9 +138,11 @@ public class Server {
 
 
     private synchronized void storeEmail(Email email) {
-        allEmails.add(email); // Add the email to the collection
+        allEmails.add(email);
         log("Email stored from: " + email.getSender());
+        saveEmailsToFile(); // Salva le email nel file dopo aver aggiunto un'email
     }
+
 
     private void log(String message) {
         if (controller != null) {
@@ -161,4 +166,27 @@ public class Server {
             Thread.currentThread().interrupt();
         }
     }
+
+    private void loadEmailsFromFile() {
+        try (ObjectInputStream objectIn = new ObjectInputStream(new FileInputStream("/home/francesco/Desktop/prog3/Prog3Progetto/emails.dat"))) {
+            // Leggi le email dal file e aggiungile alla lista
+            List<Email> loadedEmails = (List<Email>) objectIn.readObject();
+            allEmails.addAll(loadedEmails);
+            log("Loaded " + loadedEmails.size() + " emails from file.");
+        } catch (IOException | ClassNotFoundException e) {
+            log("Error loading emails from file: " + e.getMessage());
+        }
+    }
+
+    private void saveEmailsToFile() {
+        try (ObjectOutputStream objectOut = new ObjectOutputStream(new FileOutputStream("/home/francesco/Desktop/prog3/Prog3Progetto/emails.dat"))) {
+            // Salva le email nel file
+            objectOut.writeObject(allEmails);
+            log("Saved " + allEmails.size() + " emails to file.");
+        } catch (IOException e) {
+            log("Error saving emails to file: " + e.getMessage());
+        }
+    }
+
+
 }
