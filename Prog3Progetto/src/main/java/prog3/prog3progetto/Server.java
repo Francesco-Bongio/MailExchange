@@ -105,7 +105,7 @@ public class Server {
         }
     }
 
-    private boolean processEmail(Email email) {
+    private synchronized boolean processEmail(Email email) {
         if (email != null && VALID_EMAILS.containsAll(email.getRecipients())) {
             System.out.println(email.getBodyMessage());
             log("Received and processed email from: " + email.getSender());
@@ -118,29 +118,26 @@ public class Server {
         }
     }
 
+
     private synchronized List<Email> getEmailsForUser(String userEmail) {
         List<Email> emailsForUser = new ArrayList<>();
-        Iterator<Email> iterator = allEmails.iterator();
-
-        while (iterator.hasNext()) {
-            Email email = iterator.next();
+        for (Email email : allEmails) {
             if (email.getRecipients().contains(userEmail) && !email.hasReceived(userEmail)) {
-                emailsForUser.add(email);
-                email.markAsReceived(userEmail);
-
-                if (email.getRecipientsReceived().containsAll(email.getRecipients())) {
-                    iterator.remove(); // Safe removal during iteration
-                }
+                Email clonedEmail = email.clone();
+                clonedEmail.markAsReceived(userEmail);
+                emailsForUser.add(clonedEmail);
             }
         }
         return emailsForUser;
     }
 
 
+
     private synchronized void storeEmail(Email email) {
         allEmails.add(email);
-        log("Email stored from: " + email.getSender());
-        saveEmailsToFile(); // Salva le email nel file dopo aver aggiunto un'email
+        log("Email added to list from: " + email.getSender());
+        saveEmailsToFile(); // Save emails to file after adding an email
+        log("All emails saved. Total count: " + allEmails.size());
     }
 
 
@@ -169,24 +166,27 @@ public class Server {
 
     private void loadEmailsFromFile() {
         try (ObjectInputStream objectIn = new ObjectInputStream(new FileInputStream("/home/francesco/Desktop/prog3/Prog3Progetto/emails.dat"))) {
-            // Leggi le email dal file e aggiungile alla lista
             List<Email> loadedEmails = (List<Email>) objectIn.readObject();
+            allEmails.clear();
             allEmails.addAll(loadedEmails);
-            log("Loaded " + loadedEmails.size() + " emails from file.");
+            log("Loaded " + loadedEmails.size() + " emails from file. Total emails in list: " + allEmails.size());
         } catch (IOException | ClassNotFoundException e) {
             log("Error loading emails from file: " + e.getMessage());
         }
     }
 
+
     private void saveEmailsToFile() {
         try (ObjectOutputStream objectOut = new ObjectOutputStream(new FileOutputStream("/home/francesco/Desktop/prog3/Prog3Progetto/emails.dat"))) {
-            // Salva le email nel file
             objectOut.writeObject(allEmails);
             log("Saved " + allEmails.size() + " emails to file.");
         } catch (IOException e) {
             log("Error saving emails to file: " + e.getMessage());
+            e.printStackTrace(); // Added to print stack trace for better debugging
         }
     }
+
+
 
 
 }

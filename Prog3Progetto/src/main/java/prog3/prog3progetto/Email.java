@@ -1,6 +1,7 @@
 package prog3.prog3progetto;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -70,4 +71,13 @@ public class Email implements Serializable {
     public Set<String> getRecipientsReceived() {
         return recipientsReceived;
     }
+    public Email clone() {
+        Email clonedEmail = new Email(new ArrayList<>(this.recipients), this.sender, this.subject, this.bodyMessage);
+        // Clone the state of recipientsReceived if necessary
+        for (String recipient : this.recipientsReceived) {
+            clonedEmail.recipientsReceived.add(recipient);
+        }
+        return clonedEmail;
+    }
+
 }

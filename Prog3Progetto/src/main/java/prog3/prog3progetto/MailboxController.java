@@ -132,9 +132,12 @@ public class MailboxController implements Initializable {
             objectOut.flush();
 
             Object response = objectIn.readObject();
-            if (response instanceof List<?> list) {
-                List<Email> emails = (List<Email>) list;
-                emailList.addAll(emails);
+            if (response instanceof List<?>) {
+                List<Email> emails = (List<Email>) response;
+                if (!emails.isEmpty()) {
+                    emailList.clear(); // Clear the list only if a non-empty list is received
+                    emailList.addAll(emails);
+                }
             } else {
                 showAlert("Error", "Invalid response from server.", Alert.AlertType.ERROR);
             }
@@ -143,6 +146,7 @@ public class MailboxController implements Initializable {
         }
         updateInboxCounter();
     }
+
 
     private void updateInboxCounter() {
         int inboxCounter = emailList.size();
