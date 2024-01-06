@@ -1,10 +1,7 @@
 package prog3.prog3progetto;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class Email implements Serializable {
     private boolean selected;
@@ -13,6 +10,8 @@ public class Email implements Serializable {
     private String subject;
     private String bodyMessage;
     private final Set<String> recipientsReceived;
+    private static final long serialVersionUID = 1L;
+
 
     public Email(List<String> recipients, String sender, String subject, String bodyMessage) {
         this.recipients = recipients;
@@ -78,6 +77,21 @@ public class Email implements Serializable {
             clonedEmail.recipientsReceived.add(recipient);
         }
         return clonedEmail;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        Email email = (Email) obj;
+        return sender.equals(email.sender) &&
+                subject.equals(email.subject) &&
+                bodyMessage.equals(email.bodyMessage);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(sender, subject, bodyMessage);
     }
 
 }

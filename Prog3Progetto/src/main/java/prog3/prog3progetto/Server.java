@@ -92,6 +92,11 @@ public class Server {
                 objectOut.writeObject(result);
                 log("Email processed and sent to recipients");
             }
+            else if (obj instanceof DeleteEmailsRequest deleteRequest) {
+                boolean result = deleteEmails(deleteRequest.getEmailsToDelete());
+                objectOut.writeObject(result);
+                log("Delete email request processed.");
+            }
 
         } catch (IOException | ClassNotFoundException e) {
             log("Error handling client connection: " + e.getMessage());
@@ -185,6 +190,19 @@ public class Server {
             e.printStackTrace(); // Added to print stack trace for better debugging
         }
     }
+
+    private synchronized boolean deleteEmails(List<Email> emailsToDelete) {
+        log("Attempting to delete " + emailsToDelete.size() + " emails.");
+        boolean allDeleted = allEmails.removeAll(emailsToDelete);
+        if (allDeleted) {
+            saveEmailsToFile(); // Update the file after deletion
+        } else {
+            log("Some emails were not deleted.");
+        }
+        return allDeleted;
+    }
+
+
 
 
 

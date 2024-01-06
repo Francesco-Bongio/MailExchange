@@ -29,6 +29,7 @@ import java.util.ResourceBundle;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public class MailboxController implements Initializable {
 
@@ -155,9 +156,35 @@ public class MailboxController implements Initializable {
 
     @FXML
     public void onDelete() {
-        emailList.removeIf(Email::isSelected);
-        updateInboxCounter();
+        List<Email> selectedEmails = emailList.stream()
+                .filter(Email::isSelected)
+                .collect(Collectors.toList());
+
+        if (!selectedEmails.isEmpty()) {
+            sendDeleteRequestToServer(selectedEmails);
+            emailList.removeIf(Email::isSelected);
+            updateInboxCounter();
+        }
     }
+
+    private void sendDeleteRequestToServer(List<Email> emailsToDelete) {
+        try (Socket socket = new Socket("localhost", 12345);
+             ObjectOutputStream objectOut = new ObjectOutputStream(socket.getOutputStream());
+             ObjectInputStream objectIn = new ObjectInputStream(socket.getInputStream())) {
+
+            objectOut.writeObject(new DeleteEmailsRequest(emailsToDelete));
+            objectOut.flush();
+
+            boolean success = (Boolean) objectIn.readObject();
+            if (!success) {
+                showAlert("Error", "Failed to delete emails from the server.", Alert.AlertType.ERROR);
+            }
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace(); // Add this line for more detailed error info
+            showAlert("Connection Error", "Failed to connect to the server.", Alert.AlertType.ERROR);
+        }
+    }
+
 
     @FXML
     public void onCompose() {
