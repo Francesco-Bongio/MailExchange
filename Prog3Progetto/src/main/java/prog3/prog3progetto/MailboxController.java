@@ -180,7 +180,7 @@ public class MailboxController implements Initializable {
                 showAlert("Error", "Failed to delete emails from the server.", Alert.AlertType.ERROR);
             }
         } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace(); // Add this line for more detailed error info
+            e.printStackTrace();
             showAlert("Connection Error", "Failed to connect to the server.", Alert.AlertType.ERROR);
         }
     }

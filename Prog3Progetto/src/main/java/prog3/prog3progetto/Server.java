@@ -187,7 +187,7 @@ public class Server {
             log("Saved " + allEmails.size() + " emails to file.");
         } catch (IOException e) {
             log("Error saving emails to file: " + e.getMessage());
-            e.printStackTrace(); // Added to print stack trace for better debugging
+            e.printStackTrace();
         }
     }
 
