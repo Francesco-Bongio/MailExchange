@@ -41,9 +41,12 @@ public class MailboxController implements Initializable {
     private ListView<Email> listView;
     @FXML
     private Pane mailboxPane;
+    @FXML
+    private Label userLabel;
 
     private final ObservableList<Email> emailList = FXCollections.observableArrayList();
     private ScheduledExecutorService reconnectionScheduler;
+    private ScheduledExecutorService fetchAllEmailsScheduler;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -75,8 +78,48 @@ public class MailboxController implements Initializable {
                 }
             }
         });
+        userLabel.setText(SessionStore.getInstance().getUserEmail());
         updateInboxCounter();
+        fetchAllEmails();
         initiateReconnectionMechanism();
+    }
+
+    private void fetchAllEmails() {
+        fetchAllEmailsScheduler = Executors.newSingleThreadScheduledExecutor();
+        if (isServerAvailable()) {
+            try (Socket socket = new Socket("localhost", 12345);
+                 ObjectOutputStream objectOut = new ObjectOutputStream(socket.getOutputStream());
+                 ObjectInputStream objectIn = new ObjectInputStream(socket.getInputStream())) {
+
+                String userEmail = SessionStore.getInstance().getUserEmail();
+                objectOut.writeObject("FETCH_ALL_EMAILS, " + userEmail);
+                objectOut.flush();
+
+                Object response = objectIn.readObject();
+                if (response instanceof List<?>) {
+                    List<Email> emails = (List<Email>) response;
+                    Platform.runLater(() -> {
+                        emailList.clear();
+                        emailList.addAll(emails);
+                        updateInboxCounter();
+                        reconnectionScheduler.shutdown();
+                    });
+
+                } else {
+                    Platform.runLater(() -> showAlert("Error", "Invalid response from server.", Alert.AlertType.ERROR));
+                    scheduleReconnectionForEmails();
+                }
+                fetchAllEmailsScheduler.shutdown();
+            } catch (Exception e) {
+                e.printStackTrace(); // Handle exceptions
+                scheduleReconnectionForEmails();
+            }
+        } else {
+            scheduleReconnectionForEmails();
+        }
+    }
+    private void scheduleReconnectionForEmails() {
+        reconnectionScheduler.schedule(this::fetchAllEmails, 1, TimeUnit.MINUTES); // Retry after 1 minute
     }
 
     private void initiateReconnectionMechanism() {
@@ -92,7 +135,7 @@ public class MailboxController implements Initializable {
             } catch (Exception e) {
                 e.printStackTrace(); // Log the exception
             }
-        }, 0, 10, TimeUnit.MINUTES);
+        }, 10, 10, TimeUnit.MINUTES);
     }
 
     private boolean isServerAvailable() {
@@ -158,17 +201,10 @@ public class MailboxController implements Initializable {
 
     private void sendDeleteRequestToServer(List<Email> emailsToDelete) {
         try (Socket socket = new Socket("localhost", 12345);
-             ObjectOutputStream objectOut = new ObjectOutputStream(socket.getOutputStream());
-             ObjectInputStream objectIn = new ObjectInputStream(socket.getInputStream())) {
-
-            objectOut.writeObject(new DeleteEmailsRequest(emailsToDelete));
+             ObjectOutputStream objectOut = new ObjectOutputStream(socket.getOutputStream())) {
+            objectOut.writeObject(new DeleteEmailsRequest(emailsToDelete, SessionStore.getInstance().getUserEmail()));
             objectOut.flush();
-
-            boolean success = (Boolean) objectIn.readObject();
-            if (!success) {
-                showAlert("Error", "Failed to delete emails from the server.", Alert.AlertType.ERROR);
-            }
-        } catch (IOException | ClassNotFoundException e) {
+        } catch (IOException e) {
             e.printStackTrace();
             showAlert("Connection Error", "Failed to connect to the server.", Alert.AlertType.ERROR);
         }

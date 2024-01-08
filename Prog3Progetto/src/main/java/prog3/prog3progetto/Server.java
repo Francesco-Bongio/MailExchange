@@ -21,8 +21,6 @@ public class Server {
     public Server(ServerViewController controller) {
         this.controller = controller;
         this.executor = Executors.newFixedThreadPool(10);
-        // Carica le email dal file quando il server viene avviato
-        loadEmailsFromFile();
     }
 
 
@@ -30,6 +28,7 @@ public class Server {
         try {
             serverSocket = new ServerSocket(PORT);
             log("Server started, listening on port " + PORT);
+            loadEmailsFromFile();
 
             while (!Thread.currentThread().isInterrupted()) {
                 try {
@@ -71,7 +70,13 @@ public class Server {
             Object obj = objectIn.readObject();
 
             if (obj instanceof String request) {
-                if (request.startsWith("GET_EMAILS,")) {
+                if (request.startsWith("FETCH_ALL_EMAILS, ")) {
+                    String userEmail = request.substring("FETCH_ALL_EMAILS, ".length());
+                    List<Email> emails = getAllEmailsForUser(userEmail);
+                    objectOut.writeObject(emails);
+                    log("Email request for: " + userEmail);
+                }
+                else if (request.startsWith("GET_EMAILS,")) {
                     // Handle GET_EMAILS request
                     String userEmail = request.substring("GET_EMAILS, ".length());
                     List<Email> emails = getEmailsForUser(userEmail);
@@ -91,10 +96,8 @@ public class Server {
                 boolean result = processEmail(email); // Implement this method
                 objectOut.writeObject(result);
                 log("Email processed and sent to recipients");
-            }
-            else if (obj instanceof DeleteEmailsRequest deleteRequest) {
-                boolean result = deleteEmails(deleteRequest.getEmailsToDelete());
-                objectOut.writeObject(result);
+            } else if (obj instanceof DeleteEmailsRequest deleteRequest) {
+                deleteEmails(deleteRequest.getEmailsToDelete(), deleteRequest.getUser());
                 log("Delete email request processed.");
             }
 
@@ -122,21 +125,6 @@ public class Server {
             return false;
         }
     }
-
-
-    private synchronized List<Email> getEmailsForUser(String userEmail) {
-        List<Email> emailsForUser = new ArrayList<>();
-        for (Email email : allEmails) {
-            if (email.getRecipients().contains(userEmail) && !email.hasReceived(userEmail)) {
-                Email clonedEmail = email.clone();
-                clonedEmail.markAsReceived(userEmail);
-                emailsForUser.add(clonedEmail);
-            }
-        }
-        return emailsForUser;
-    }
-
-
 
     private synchronized void storeEmail(Email email) {
         allEmails.add(email);
@@ -174,14 +162,15 @@ public class Server {
             List<Email> loadedEmails = (List<Email>) objectIn.readObject();
             allEmails.clear();
             allEmails.addAll(loadedEmails);
-            log("Loaded " + loadedEmails.size() + " emails from file. Total emails in list: " + allEmails.size());
+            log("Loaded " + loadedEmails.size() + "emails from file. Total emails in list: " + allEmails.size());
         } catch (IOException | ClassNotFoundException e) {
-            if(e.getMessage() == null){
+            if (e.getMessage() == null) {
                 log("No emails to load");
-            } else { log("Error loading emails from file: " + e.getMessage()); }
+            } else {
+                log("Error loading emails from file: " + e.getMessage());
+            }
         }
     }
-
 
     private void saveEmailsToFile() {
         try (ObjectOutputStream objectOut = new ObjectOutputStream(new FileOutputStream("emails.dat"))) {
@@ -193,20 +182,44 @@ public class Server {
         }
     }
 
-    private synchronized boolean deleteEmails(List<Email> emailsToDelete) {
-        log("Attempting to delete " + emailsToDelete.size() + " emails.");
-        boolean allDeleted = allEmails.removeAll(emailsToDelete);
-        if (allDeleted) {
-            saveEmailsToFile(); // Update the file after deletion
-        } else {
-            log("Some emails were not deleted.");
+    private synchronized List<Email> getAllEmailsForUser(String userEmail) {
+        List<Email> emailsForUser = new ArrayList<>();
+        for (Email email : allEmails) {
+            if (email.getRecipients().contains(userEmail) && !email.hasRemoved(userEmail)) {
+                emailsForUser.add(email);
+            }
         }
-        return allDeleted;
+        return emailsForUser;
     }
 
+    private synchronized List<Email> getEmailsForUser(String userEmail) {
+        List<Email> emailsForUser = new ArrayList<>();
+        for (Email email : allEmails) {
+            if (email.getRecipients().contains(userEmail) && !email.hasReceived(userEmail)) {
+                email.markAsReceived(userEmail);
+                emailsForUser.add(email);
+            }
+        }
+        saveEmailsToFile();
+        return emailsForUser;
+    }
 
+    private synchronized void deleteEmails(List<Email> emailsToDelete, String user) {
+        log("Attempting to delete " + emailsToDelete.size() + " emails for user " + user);
 
-
-
-
+        for (Email emailToDelete : emailsToDelete) {
+            for (Email emailInAllEmails : allEmails) {
+                if (emailToDelete.equals(emailInAllEmails)) {
+                    if (!emailInAllEmails.hasRemoved(user)) {
+                        emailInAllEmails.markAsRemoved(user);
+                        if (emailInAllEmails.isRemovedByAllRecipients()) {
+                            allEmails.remove(emailInAllEmails);
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+        saveEmailsToFile();
+    }
 }

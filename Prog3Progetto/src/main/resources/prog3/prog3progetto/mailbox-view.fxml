@@ -19,12 +19,16 @@
         <HBox spacing="20">
             <Label text="Inbox" prefWidth="100" />
             <Label fx:id="inbox"/>
-            <Region/>
+            <Region HBox.hgrow="ALWAYS"/>
         </HBox>
     </VBox>
 
     <!-- Right Side -->
 
-    <!-- ListView with checkboxes -->
-    <ListView fx:id="listView" HBox.hgrow="ALWAYS" onMouseClicked="#openEmail"/>
+    <!-- Centered Label -->
+    <VBox spacing="30" HBox.hgrow="ALWAYS" style="-fx-padding: 3 0 0 0" alignment="CENTER_RIGHT">
+        <Label fx:id="userLabel" style="-fx-font-size: 14px;"/>
+        <ListView fx:id="listView" onMouseClicked="#openEmail" VBox.vgrow="ALWAYS"/>
+    </VBox>
 </HBox>
+
