@@ -170,7 +170,7 @@ public class Server {
     }
 
     private void loadEmailsFromFile() {
-        try (ObjectInputStream objectIn = new ObjectInputStream(new FileInputStream("/home/francesco/Desktop/prog3/Prog3Progetto/emails.dat"))) {
+        try (ObjectInputStream objectIn = new ObjectInputStream(new FileInputStream("emails.dat"))) {
             List<Email> loadedEmails = (List<Email>) objectIn.readObject();
             allEmails.clear();
             allEmails.addAll(loadedEmails);
@@ -178,14 +178,13 @@ public class Server {
         } catch (IOException | ClassNotFoundException e) {
             if(e.getMessage() == null){
                 log("No emails to load");
-            }
-            log("Error loading emails from file: " + e.getMessage());
+            } else { log("Error loading emails from file: " + e.getMessage()); }
         }
     }
 
 
     private void saveEmailsToFile() {
-        try (ObjectOutputStream objectOut = new ObjectOutputStream(new FileOutputStream("/home/francesco/Desktop/prog3/Prog3Progetto/emails.dat"))) {
+        try (ObjectOutputStream objectOut = new ObjectOutputStream(new FileOutputStream("emails.dat"))) {
             objectOut.writeObject(allEmails);
             log("Saved " + allEmails.size() + " emails to file.");
         } catch (IOException e) {

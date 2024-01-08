@@ -75,19 +75,8 @@ public class MailboxController implements Initializable {
                 }
             }
         });
-        populateWithStaticData(); // Populate ListView with static data for testing
         updateInboxCounter();
         initiateReconnectionMechanism();
-    }
-
-    //test with static data
-    private void populateWithStaticData() {
-        List<Email> staticEmails = List.of(
-                new Email(List.of("recipient1@example.com"), "sender@example.com", "Subject 1", "Body of email 1"),
-                new Email(List.of("recipient2@example.com"), "sender@example.com", "Subject 2", "Body of email 2"),
-                new Email(List.of("recipient3@example.com"), "sender@example.com", "Subject 3", "Body of email 3")
-        );
-        emailList.setAll(staticEmails);
     }
 
     private void initiateReconnectionMechanism() {

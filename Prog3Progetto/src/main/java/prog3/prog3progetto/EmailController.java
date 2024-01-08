@@ -114,25 +114,6 @@ public class EmailController {
         }
     }
 
-    /*
-    private boolean sendEmailToServer(Email email) {
-        try (Socket socket = new Socket("localhost", 12345);
-             ObjectOutputStream objectOut = new ObjectOutputStream(socket.getOutputStream());
-             ObjectInputStream objectIn = new ObjectInputStream(socket.getInputStream())) {
-
-            objectOut.writeObject(email);
-            objectOut.flush();
-
-            // Read the server's response (assuming the server sends a response)
-            return (Boolean)objectIn.readObject();
-
-        } catch (IOException | ClassNotFoundException e) {
-            Platform.runLater(() -> showAlert("Connection Error", "Failed to connect to the server. Please try again later.", Alert.AlertType.ERROR));
-            return false;
-        }
-    }
-    */
-
     private void showAlert(String title, String content, Alert.AlertType type) {
         Alert alert = new Alert(type);
         alert.setTitle(title);
