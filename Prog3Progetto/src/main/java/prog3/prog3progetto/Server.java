@@ -176,6 +176,9 @@ public class Server {
             allEmails.addAll(loadedEmails);
             log("Loaded " + loadedEmails.size() + " emails from file. Total emails in list: " + allEmails.size());
         } catch (IOException | ClassNotFoundException e) {
+            if(e.getMessage() == null){
+                log("No emails to load");
+            }
             log("Error loading emails from file: " + e.getMessage());
         }
     }
