@@ -10,13 +10,11 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.stage.Stage;
 import java.io.IOException;
@@ -32,18 +30,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class MailboxController implements Initializable {
-
-    @FXML
-    private Button composeButton, deleteButton, refresh;
     @FXML
     private Label inbox;
     @FXML
     private ListView<Email> listView;
     @FXML
-    private Pane mailboxPane;
-    @FXML
     private Label userLabel;
-
     private final ObservableList<Email> emailList = FXCollections.observableArrayList();
     private ScheduledExecutorService reconnectionScheduler;
     private ScheduledExecutorService fetchAllEmailsScheduler;
@@ -51,7 +43,7 @@ public class MailboxController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         listView.setItems(emailList);
-        listView.setCellFactory(lv -> new ListCell<Email>() {
+        listView.setCellFactory(lv -> new ListCell<>() {
             private final CheckBox checkBox = new CheckBox();
             private final Label senderLabel = new Label();
             private final Label subjectLabel = new Label();
@@ -101,17 +93,16 @@ public class MailboxController implements Initializable {
                     Platform.runLater(() -> {
                         emailList.clear();
                         emailList.addAll(emails);
-                        updateInboxCounter();
                         reconnectionScheduler.shutdown();
+                        updateInboxCounter();
                     });
-
                 } else {
-                    Platform.runLater(() -> showAlert("Error", "Invalid response from server.", Alert.AlertType.ERROR));
+                    Platform.runLater(() -> showAlert("Reconnection Attempt", "Trying to reconnect to the server...", Alert.AlertType.INFORMATION));
                     scheduleReconnectionForEmails();
                 }
                 fetchAllEmailsScheduler.shutdown();
-            } catch (Exception e) {
-                e.printStackTrace(); // Handle exceptions
+            } catch (IOException | ClassNotFoundException e) {
+                showAlert("Connection Error", "Failed to connect to the server.", Alert.AlertType.ERROR);
                 scheduleReconnectionForEmails();
             }
         } else {
@@ -119,7 +110,7 @@ public class MailboxController implements Initializable {
         }
     }
     private void scheduleReconnectionForEmails() {
-        reconnectionScheduler.schedule(this::fetchAllEmails, 1, TimeUnit.MINUTES); // Retry after 1 minute
+        reconnectionScheduler.schedule(this::fetchAllEmails, 1, TimeUnit.MINUTES);
     }
 
     private void initiateReconnectionMechanism() {
@@ -179,7 +170,6 @@ public class MailboxController implements Initializable {
         }
         updateInboxCounter();
     }
-
 
     private void updateInboxCounter() {
         int inboxCounter = emailList.size();
@@ -279,5 +269,13 @@ public class MailboxController implements Initializable {
         alert.setHeaderText(null);
         alert.setContentText(content);
         alert.showAndWait();
+    }
+    public void stopMailboxController(){
+        if (reconnectionScheduler != null && !reconnectionScheduler.isShutdown()) {
+            reconnectionScheduler.shutdownNow();
+        }
+        if (fetchAllEmailsScheduler != null && !fetchAllEmailsScheduler.isShutdown()) {
+            fetchAllEmailsScheduler.shutdownNow();
+        }
     }
 }

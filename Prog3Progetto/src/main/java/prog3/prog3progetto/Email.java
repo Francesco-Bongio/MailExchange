@@ -56,7 +56,7 @@ public class Email implements Serializable {
     public void markAsReceived(String recipient) {
         recipientsReceived.add(recipient);
     }
-    public boolean hasRemoved(String recipient) {return recipientsRemoved.contains(recipient); }
+    public boolean hasRemoved(String recipient) { return !recipientsRemoved.contains(recipient); }
     public void markAsRemoved(String recipient) {
         recipientsRemoved.add(recipient);
     }

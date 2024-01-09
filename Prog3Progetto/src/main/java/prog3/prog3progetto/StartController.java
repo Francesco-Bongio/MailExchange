@@ -6,7 +6,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
-
+import javafx.scene.Parent;
 import java.io.*;
 import java.net.Socket;
 import java.util.regex.Pattern;
@@ -56,18 +56,25 @@ public class StartController {
         try {
             // Load the Mailbox FXML file
             FXMLLoader loader = new FXMLLoader(getClass().getResource("mailbox-view.fxml"));
-            Stage stage = (Stage) enterEmailText.getScene().getWindow();
+            Parent root = loader.load();
+            MailboxController mailboxController = loader.getController();
+
+            if (mailboxController == null) {
+                System.err.println("MailboxController is null. Check FXML file and controller association.");
+                return; // Exit to prevent NPE
+            }
 
             // Hide the current (StartView) window
+            Stage stage = (Stage) enterEmailText.getScene().getWindow();
             stage.hide();
 
             // Set the new scene
-            Scene scene = new Scene(loader.load());
+            Scene scene = new Scene(root);
             stage.setScene(scene);
             stage.setWidth(600);
             stage.setHeight(400);
             stage.setTitle("3Mail");
-
+            stage.setOnCloseRequest(event -> mailboxController.stopMailboxController());
             stage.show();
         } catch (IOException e) {
             e.printStackTrace();

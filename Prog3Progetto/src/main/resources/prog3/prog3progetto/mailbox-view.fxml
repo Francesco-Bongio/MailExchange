@@ -3,7 +3,6 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<?import javafx.beans.binding.Binding?>
 <HBox style="-fx-padding: 15px" xmlns="http://javafx.com/javafx/17.0.2-ea"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="prog3.prog3progetto.MailboxController">
@@ -11,11 +10,11 @@
 
     <VBox spacing="30"> <!-- Padding on the right -->
         <Label style="-fx-font-size: 20px;" text="3Mail"/>
-        <Button fx:id="composeButton" onAction="#onCompose" text="Compose" />
+        <Button onAction="#onCompose" text="Compose" />
         <Button onAction="#selectAllEmails" text="Select All" />
-        <Button fx:id="deleteButton" onAction="#onDelete" text="Delete"/>
+        <Button onAction="#onDelete" text="Delete"/>
         <!-- Placeholder for Inbox count -->
-        <Button fx:id="refresh" text="refresh" onAction="#onRefresh"/>
+        <Button text="refresh" onAction="#onRefresh"/>
         <HBox spacing="20">
             <Label text="Inbox" prefWidth="100" />
             <Label fx:id="inbox"/>

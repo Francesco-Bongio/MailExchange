@@ -11,7 +11,7 @@ public class ServerApp extends Application {
     @Override
     public void start(Stage primaryStage) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/prog3/prog3progetto/server-view.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("server-view.fxml"));
             Parent root = loader.load();
             ServerViewController controller = loader.getController();
             Server server = new Server(controller);
@@ -22,6 +22,7 @@ public class ServerApp extends Application {
             primaryStage.show();
 
             new Thread(server::startServer).start();
+
         } catch (Exception e) {
             e.printStackTrace();
         }

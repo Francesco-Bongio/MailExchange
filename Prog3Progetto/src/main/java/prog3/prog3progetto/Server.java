@@ -162,7 +162,7 @@ public class Server {
             List<Email> loadedEmails = (List<Email>) objectIn.readObject();
             allEmails.clear();
             allEmails.addAll(loadedEmails);
-            log("Loaded " + loadedEmails.size() + "emails from file. Total emails in list: " + allEmails.size());
+            log("Loaded " + loadedEmails.size() + " emails from file. Total emails in list: " + allEmails.size());
         } catch (IOException | ClassNotFoundException e) {
             if (e.getMessage() == null) {
                 log("No emails to load");
@@ -210,7 +210,7 @@ public class Server {
         for (Email emailToDelete : emailsToDelete) {
             for (Email emailInAllEmails : allEmails) {
                 if (emailToDelete.equals(emailInAllEmails)) {
-                    if (!emailInAllEmails.hasRemoved(user)) {
+                    if (emailInAllEmails.hasRemoved(user)) {
                         emailInAllEmails.markAsRemoved(user);
                         if (emailInAllEmails.isRemovedByAllRecipients()) {
                             allEmails.remove(emailInAllEmails);
