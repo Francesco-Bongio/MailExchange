@@ -56,13 +56,14 @@ public class Email implements Serializable {
     public void markAsReceived(String recipient) {
         recipientsReceived.add(recipient);
     }
-    public boolean hasRemoved(String recipient) { return !recipientsRemoved.contains(recipient); }
+    public boolean hasNotRemoved(String recipient) { return !recipientsRemoved.contains(recipient); }
     public void markAsRemoved(String recipient) {
         recipientsRemoved.add(recipient);
     }
     public boolean isRemovedByAllRecipients() {
         return recipients.size() == recipientsRemoved.size();
     }
+
 
     @Override
     public boolean equals(Object obj) {
@@ -78,4 +79,5 @@ public class Email implements Serializable {
     public int hashCode() {
         return Objects.hash(sender, subject, bodyMessage);
     }
+
 }

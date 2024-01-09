@@ -66,7 +66,7 @@ public class MailboxController implements Initializable {
                     checkBox.setOnAction(e -> email.setSelected(checkBox.isSelected()));
                     senderLabel.setText(email.getSender());
                     subjectLabel.setText(email.getSubject());
-                    setGraphic(hbox); // Set the HBox as the graphic of the cell
+                    setGraphic(hbox);
                 }
             }
         });
@@ -159,7 +159,6 @@ public class MailboxController implements Initializable {
             if (response instanceof List<?>) {
                 List<Email> emails = (List<Email>) response;
                 if (!emails.isEmpty()) {
-                    emailList.clear(); // Clear the list only if a non-empty list is received
                     emailList.addAll(emails);
                 }
             } else {

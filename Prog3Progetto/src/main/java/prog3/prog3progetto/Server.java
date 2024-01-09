@@ -185,7 +185,7 @@ public class Server {
     private synchronized List<Email> getAllEmailsForUser(String userEmail) {
         List<Email> emailsForUser = new ArrayList<>();
         for (Email email : allEmails) {
-            if (email.getRecipients().contains(userEmail) && !email.hasRemoved(userEmail)) {
+            if (email.getRecipients().contains(userEmail) && email.hasNotRemoved(userEmail)) {
                 emailsForUser.add(email);
             }
         }
@@ -210,7 +210,7 @@ public class Server {
         for (Email emailToDelete : emailsToDelete) {
             for (Email emailInAllEmails : allEmails) {
                 if (emailToDelete.equals(emailInAllEmails)) {
-                    if (emailInAllEmails.hasRemoved(user)) {
+                    if (emailInAllEmails.hasNotRemoved(user)) {
                         emailInAllEmails.markAsRemoved(user);
                         if (emailInAllEmails.isRemovedByAllRecipients()) {
                             allEmails.remove(emailInAllEmails);
