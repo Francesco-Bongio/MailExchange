@@ -91,11 +91,17 @@ public class Server {
                     objectOut.writeObject(isValidEmail);
                     log("Login request: " + request + " - Valid: " + isValidEmail);
                 }
-            } else if (obj instanceof Email email) {
-                // Handle email object
-                boolean result = processEmail(email); // Implement this method
-                objectOut.writeObject(result);
-                log("Email processed and sent to recipients");
+            } else if (obj instanceof List<?> rawList) {
+                if (!rawList.isEmpty() && rawList.getFirst() instanceof Email) {
+                    @SuppressWarnings("unchecked")
+                    List<Email> emails = (List<Email>) rawList;
+                    for (Email email : emails) {
+                        processEmail(email);
+                    }
+                    log("Emails processed and sent to recipients");
+                } else {
+                    log("Received an invalid list type");
+                }
             } else if (obj instanceof DeleteEmailsRequest deleteRequest) {
                 deleteEmails(deleteRequest.getEmailsToDelete(), deleteRequest.getUser());
                 log("Delete email request processed.");
@@ -113,16 +119,14 @@ public class Server {
         }
     }
 
-    private synchronized boolean processEmail(Email email) {
+    private synchronized void processEmail(Email email) {
         if (email != null && VALID_EMAILS.containsAll(email.getRecipients())) {
             System.out.println(email.getBodyMessage());
             log("Received and processed email from: " + email.getSender());
             storeEmail(email); // Store the email
-            return true;
         } else {
             assert email != null;
             log("Received email with invalid recipients: " + email.getRecipients());
-            return false;
         }
     }
 

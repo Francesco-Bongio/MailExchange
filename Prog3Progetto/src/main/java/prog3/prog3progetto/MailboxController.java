@@ -22,12 +22,13 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 public class MailboxController implements Initializable {
     @FXML
@@ -39,6 +40,8 @@ public class MailboxController implements Initializable {
     private final ObservableList<Email> emailList = FXCollections.observableArrayList();
     private ScheduledExecutorService reconnectionScheduler;
     private ScheduledExecutorService fetchAllEmailsScheduler;
+    private ScheduledExecutorService deleteEmailsScheduler;
+    private final List<Email> emailsToDelete = Collections.synchronizedList(new ArrayList<>());
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -76,43 +79,6 @@ public class MailboxController implements Initializable {
         initiateReconnectionMechanism();
     }
 
-    private void fetchAllEmails() {
-        fetchAllEmailsScheduler = Executors.newSingleThreadScheduledExecutor();
-        if (isServerAvailable()) {
-            try (Socket socket = new Socket("localhost", 12345);
-                 ObjectOutputStream objectOut = new ObjectOutputStream(socket.getOutputStream());
-                 ObjectInputStream objectIn = new ObjectInputStream(socket.getInputStream())) {
-
-                String userEmail = SessionStore.getInstance().getUserEmail();
-                objectOut.writeObject("FETCH_ALL_EMAILS, " + userEmail);
-                objectOut.flush();
-
-                Object response = objectIn.readObject();
-                if (response instanceof List<?>) {
-                    List<Email> emails = (List<Email>) response;
-                    Platform.runLater(() -> {
-                        emailList.clear();
-                        emailList.addAll(emails);
-                        reconnectionScheduler.shutdown();
-                        updateInboxCounter();
-                    });
-                } else {
-                    Platform.runLater(() -> showAlert("Reconnection Attempt", "Trying to reconnect to the server...", Alert.AlertType.INFORMATION));
-                    scheduleReconnectionForEmails();
-                }
-                fetchAllEmailsScheduler.shutdown();
-            } catch (IOException | ClassNotFoundException e) {
-                showAlert("Connection Error", "Failed to connect to the server.", Alert.AlertType.ERROR);
-                scheduleReconnectionForEmails();
-            }
-        } else {
-            scheduleReconnectionForEmails();
-        }
-    }
-    private void scheduleReconnectionForEmails() {
-        reconnectionScheduler.schedule(this::fetchAllEmails, 1, TimeUnit.MINUTES);
-    }
-
     private void initiateReconnectionMechanism() {
         reconnectionScheduler = Executors.newSingleThreadScheduledExecutor();
         reconnectionScheduler.scheduleAtFixedRate(() -> {
@@ -120,15 +86,13 @@ public class MailboxController implements Initializable {
                 if (!isServerAvailable()) {
                     Platform.runLater(() -> showAlert("Reconnection Attempt", "Trying to reconnect to the server...", Alert.AlertType.INFORMATION));
                 } else {
-                    // Refresh the mailbox upon reconnection
-                    Platform.runLater(this::refreshMailbox);
+                    refreshMailbox();
                 }
             } catch (Exception e) {
                 e.printStackTrace(); // Log the exception
             }
-        }, 10, 10, TimeUnit.MINUTES);
+        }, 15, 15, TimeUnit.MINUTES);
     }
-
     private boolean isServerAvailable() {
         try (Socket socket = new Socket("localhost", 12345);
              ObjectOutputStream objectOut = new ObjectOutputStream(socket.getOutputStream());
@@ -159,7 +123,7 @@ public class MailboxController implements Initializable {
             if (response instanceof List<?>) {
                 List<Email> emails = (List<Email>) response;
                 if (!emails.isEmpty()) {
-                    emailList.addAll(emails);
+                    Platform.runLater(() -> {emailList.addAll(emails); updateInboxCounter();});
                 }
             } else {
                 showAlert("Error", "Invalid response from server.", Alert.AlertType.ERROR);
@@ -167,7 +131,6 @@ public class MailboxController implements Initializable {
         } catch (IOException | ClassNotFoundException e) {
             showAlert("Connection Error", "Failed to connect to the server.", Alert.AlertType.ERROR);
         }
-        updateInboxCounter();
     }
 
     private void updateInboxCounter() {
@@ -175,30 +138,98 @@ public class MailboxController implements Initializable {
         inbox.setText(Integer.toString(inboxCounter));
     }
 
+    private void fetchAllEmails() {
+        if(fetchAllEmailsScheduler == null || fetchAllEmailsScheduler.isShutdown()) {
+            fetchAllEmailsScheduler = Executors.newSingleThreadScheduledExecutor();
+        }
+        if (isServerAvailable()) {
+            try (Socket socket = new Socket("localhost", 12345);
+                 ObjectOutputStream objectOut = new ObjectOutputStream(socket.getOutputStream());
+                 ObjectInputStream objectIn = new ObjectInputStream(socket.getInputStream())) {
+
+                String userEmail = SessionStore.getInstance().getUserEmail();
+                objectOut.writeObject("FETCH_ALL_EMAILS, " + userEmail);
+                objectOut.flush();
+
+                Object response = objectIn.readObject();
+                if (response instanceof List<?>) {
+                    List<Email> emails = (List<Email>) response;
+                    Platform.runLater(() -> {
+                        emailList.clear();
+                        emailList.addAll(emails);
+                        reconnectionScheduler.shutdownNow();
+                        updateInboxCounter();
+                    });
+                } else {
+                    scheduleReconnectionForEmails();
+                }
+                fetchAllEmailsScheduler.shutdown();
+            } catch (IOException | ClassNotFoundException e) {
+                showAlert("Connection Error", "Failed to connect to the server.", Alert.AlertType.ERROR);
+                scheduleReconnectionForEmails();
+            }
+        } else {
+            scheduleReconnectionForEmails();
+        }
+    }
+
+    private void scheduleReconnectionForEmails() {
+        fetchAllEmailsScheduler.scheduleWithFixedDelay(() -> {
+            try{
+                fetchAllEmails();
+            } catch (Exception e){
+                showAlert("Connection Error", "Failed to connect to the server.", Alert.AlertType.ERROR);
+            }
+        }, 0, 10, TimeUnit.SECONDS);
+    }
+
     @FXML
     public void onDelete() {
         List<Email> selectedEmails = emailList.stream()
                 .filter(Email::isSelected)
-                .collect(Collectors.toList());
+                .toList();
 
         if (!selectedEmails.isEmpty()) {
-            sendDeleteRequestToServer(selectedEmails);
+            synchronized (emailsToDelete) {
+                emailsToDelete.addAll(selectedEmails);
+            }
+            sendDeleteRequestToServer();
             emailList.removeIf(Email::isSelected);
             updateInboxCounter();
         }
     }
 
-    private void sendDeleteRequestToServer(List<Email> emailsToDelete) {
-        try (Socket socket = new Socket("localhost", 12345);
-             ObjectOutputStream objectOut = new ObjectOutputStream(socket.getOutputStream())) {
-            objectOut.writeObject(new DeleteEmailsRequest(emailsToDelete, SessionStore.getInstance().getUserEmail()));
-            objectOut.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-            showAlert("Connection Error", "Failed to connect to the server.", Alert.AlertType.ERROR);
+    private void sendDeleteRequestToServer() {
+        if (deleteEmailsScheduler == null || deleteEmailsScheduler.isShutdown()) {
+            deleteEmailsScheduler = Executors.newSingleThreadScheduledExecutor();
+        }
+        if(isServerAvailable()) {
+            try (Socket socket = new Socket("localhost", 12345);
+                ObjectOutputStream objectOut = new ObjectOutputStream(socket.getOutputStream())) {
+                objectOut.writeObject(new DeleteEmailsRequest(emailsToDelete, SessionStore.getInstance().getUserEmail()));
+                objectOut.flush();
+                synchronized (emailsToDelete) {
+                    emailsToDelete.clear();
+                }
+                deleteEmailsScheduler.shutdownNow();
+            } catch (IOException e) {
+                showAlert("Connection Error", "Failed to connect to the server.", Alert.AlertType.ERROR);
+                scheduleDeletionForEmails();
+            }
+        } else {
+            scheduleDeletionForEmails();
         }
     }
 
+    private void scheduleDeletionForEmails() {
+        deleteEmailsScheduler.scheduleWithFixedDelay(() -> {
+            try {
+                sendDeleteRequestToServer();
+            } catch (Exception e) {
+                showAlert("Error", "Error deleting emails, please try again later.", Alert.AlertType.ERROR);
+            }
+        }, 30, 10, TimeUnit.SECONDS);
+    }
 
     @FXML
     public void onCompose() {
@@ -248,9 +279,8 @@ public class MailboxController implements Initializable {
                 FXMLLoader emailLoader = new FXMLLoader(getClass().getResource("email-view.fxml"));
                 Node emailContent = emailLoader.load();
 
-                // If you need to pass the selected email to the email view controller
                 EmailController emailController = emailLoader.getController();
-                emailController.setEmail(selectedEmail); // Ensure you have a method setEmail in EmailController
+                emailController.setEmail(selectedEmail);
 
                 Stage stage = new Stage();
                 stage.setScene(new Scene((Parent) emailContent));
