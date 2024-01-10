@@ -37,7 +37,7 @@ public class Server {
                     executor.execute(task);
                 } catch (IOException e) {
                     log("Exception in accepting client connection: " + e.getMessage());
-                    if (Thread.currentThread().isInterrupted()) {
+                    if (serverSocket.isClosed()) {
                         break;
                     }
                 }
@@ -50,11 +50,20 @@ public class Server {
     }
 
     public void stopServer() {
-        if (!executor.isShutdown()) {
-            executor.shutdownNow();
-            log("Server is shutting down.");
-        }
         try {
+            if (!executor.isShutdown()) {
+                executor.shutdownNow();
+                try {
+                    if (!executor.awaitTermination(60, TimeUnit.SECONDS)) {
+                        log("Executor did not terminate in the specified time.");
+                        executor.shutdownNow();
+                    }
+                } catch (InterruptedException ex) {
+                    log("Interrupted during shutdown: " + ex.getMessage());
+                    executor.shutdownNow();
+                    Thread.currentThread().interrupt();
+                }
+            }
             if (serverSocket != null && !serverSocket.isClosed()) {
                 serverSocket.close();
             }

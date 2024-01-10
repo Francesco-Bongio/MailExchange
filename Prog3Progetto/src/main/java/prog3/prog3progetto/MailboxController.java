@@ -307,5 +307,8 @@ public class MailboxController implements Initializable {
         if (fetchAllEmailsScheduler != null && !fetchAllEmailsScheduler.isShutdown()) {
             fetchAllEmailsScheduler.shutdownNow();
         }
+        if(deleteEmailsScheduler != null && !deleteEmailsScheduler.isShutdown()) {
+            deleteEmailsScheduler.shutdownNow();
+        }
     }
 }

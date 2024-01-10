@@ -39,11 +39,9 @@ public class StartController {
              ObjectOutputStream objectOut = new ObjectOutputStream(socket.getOutputStream());
              ObjectInputStream objectIn = new ObjectInputStream(socket.getInputStream())) {
 
-            // Send the email string to the server
             objectOut.writeObject(email);
             objectOut.flush();
 
-            // Read the response from the server
             return (Boolean) objectIn.readObject();
 
         } catch (IOException | ClassNotFoundException e) {
