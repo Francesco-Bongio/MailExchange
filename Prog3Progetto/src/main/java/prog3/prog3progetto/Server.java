@@ -189,6 +189,9 @@ public class Server {
         for (Email email : allEmails) {
             if (email.getRecipients().contains(userEmail) && email.hasNotRemoved(userEmail)) {
                 emailsForUser.add(email);
+                if(!email.hasReceived(userEmail)){
+                    email.markAsReceived(userEmail);
+                }
             }
         }
         return emailsForUser;
