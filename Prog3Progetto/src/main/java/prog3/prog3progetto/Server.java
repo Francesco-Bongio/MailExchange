@@ -121,9 +121,8 @@ public class Server {
 
     private synchronized void processEmail(Email email) {
         if (email != null && VALID_EMAILS.containsAll(email.getRecipients())) {
-            System.out.println(email.getBodyMessage());
             log("Received and processed email from: " + email.getSender());
-            storeEmail(email); // Store the email
+            storeEmail(email);
         } else {
             assert email != null;
             log("Received email with invalid recipients: " + email.getRecipients());
@@ -133,17 +132,16 @@ public class Server {
     private synchronized void storeEmail(Email email) {
         allEmails.add(email);
         log("Email added to list from: " + email.getSender());
-        saveEmailsToFile(); // Save emails to file after adding an email
+        saveEmailsToFile();
         log("All emails saved. Total count: " + allEmails.size());
     }
 
 
     private void log(String message) {
         if (controller != null) {
-            // Ensure GUI updates are done on the JavaFX Application Thread
             Platform.runLater(() -> controller.logMessage(message));
         } else {
-            System.out.println(message); // Fallback to console if controller is not initialized
+            System.out.println(message);
         }
     }
 
@@ -210,7 +208,6 @@ public class Server {
 
     private synchronized void deleteEmails(List<Email> emailsToDelete, String user) {
         log("Attempting to delete " + emailsToDelete.size() + " emails for user " + user);
-
         for (Email emailToDelete : emailsToDelete) {
             for (Email emailInAllEmails : allEmails) {
                 if (emailToDelete.equals(emailInAllEmails)) {

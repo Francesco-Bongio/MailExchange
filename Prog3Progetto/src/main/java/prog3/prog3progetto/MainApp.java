@@ -11,11 +11,8 @@ public class MainApp extends Application {
     @Override
     public void start(Stage primaryStage) {
         try {
-            // Load the StartView FXML file
             FXMLLoader loader = new FXMLLoader(getClass().getResource("start-view.fxml"));
             Parent root = loader.load();
-
-            // Set the scene and show the stage
             Scene scene = new Scene(root);
             primaryStage.setScene(scene);
             primaryStage.setTitle("3Mail - Login");
@@ -26,6 +23,6 @@ public class MainApp extends Application {
     }
 
     public static void main(String[] args) {
-        launch(args); // Launch the JavaFX application
+        launch(args);
     }
 }

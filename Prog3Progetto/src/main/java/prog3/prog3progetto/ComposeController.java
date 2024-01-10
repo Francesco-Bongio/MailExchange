@@ -32,21 +32,24 @@ public class ComposeController {
 
     @FXML
     public void sendEmail() {
-        List<String> recipients = Arrays.asList(recipientsField.getText().split("\\s*,\\s*"));
-        if (validateEmailAddresses(recipients)) {
-            String subject = subjectField.getText();
-            String message = messageArea.getText();
-            String senderEmail = SessionStore.getInstance().getUserEmail();
+        try {
+            List<String> recipients = Arrays.asList(recipientsField.getText().split("\\s*,\\s*"));
+            if (validateEmailAddresses(recipients)) {
+                String subject = subjectField.getText();
+                String message = messageArea.getText();
+                String senderEmail = SessionStore.getInstance().getUserEmail();
 
-            Email email = new Email(recipients, senderEmail, subject, message);
-            synchronized (emailsToSend) {
-                emailsToSend.add(email);
+                Email email = new Email(recipients, senderEmail, subject, message);
+                synchronized (emailsToSend) {
+                    emailsToSend.add(email);
+                }
+                sendEmailToServer();
+            } else {
+                showAlert("Error", "Invalid email address.", AlertType.ERROR);
             }
-            sendEmailToServer();
-        } else {
-            showAlert("Error", "Invalid email address.", AlertType.ERROR);
+        } finally {
+            closeComposeWindow();
         }
-        closeComposeWindow();
     }
 
     private void sendEmailToServer() {
@@ -59,7 +62,7 @@ public class ComposeController {
                     objectOut.flush();
                     emailsToSend.clear();
                 }
-                if (!sendEmailsScheduler.isShutdown() || sendEmailsScheduler != null) {
+                if (sendEmailsScheduler != null && !sendEmailsScheduler.isShutdown()) {
                     sendEmailsScheduler.shutdownNow();
                 }
 

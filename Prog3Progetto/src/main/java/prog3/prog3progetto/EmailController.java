@@ -93,16 +93,15 @@ public class EmailController {
             ComposeController composeController= loader.getController();
             composeController.setSubjectField("RE: " + subjectField.getText());
             //composeController.setMessageArea(messageArea.getText());
-            List<String> destinatari;
-            destinatari=recipientsListView.getItems();
+            List<String> recipients;
+            recipients = recipientsListView.getItems();
             String io = SessionStore.getInstance().getUserEmail();
-            for (String s : destinatari) {
+            for (String s : recipients) {
                 if (!Objects.equals(s, io)) {
                     composeController.addRecipientsField(s);
                 }
             }
             composeController.addRecipientsField(senderLabel.getText());
-
 
             // Create a new window (Stage) for the compose view
             Stage composeStage = new Stage();

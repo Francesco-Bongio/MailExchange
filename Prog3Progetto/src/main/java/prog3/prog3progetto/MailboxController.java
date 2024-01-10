@@ -153,6 +153,7 @@ public class MailboxController implements Initializable {
 
                 Object response = objectIn.readObject();
                 if (response instanceof List<?>) {
+                    @SuppressWarnings("unchecked")
                     List<Email> emails = (List<Email>) response;
                     Platform.runLater(() -> {
                         emailList.clear();
