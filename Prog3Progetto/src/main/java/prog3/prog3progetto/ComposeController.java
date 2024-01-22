@@ -34,23 +34,47 @@ public class ComposeController {
     public void sendEmail() {
         try {
             List<String> recipients = Arrays.asList(recipientsField.getText().split("\\s*,\\s*"));
-            if (validateEmailAddresses(recipients)) {
-                String subject = subjectField.getText();
-                String message = messageArea.getText();
-                String senderEmail = SessionStore.getInstance().getUserEmail();
-
-                Email email = new Email(recipients, senderEmail, subject, message);
-                synchronized (emailsToSend) {
-                    emailsToSend.add(email);
-                }
-                sendEmailToServer();
-            } else {
+            boolean checkEmails;
+            checkEmails = validateEmailAddresses(recipients);
+            if(!checkEmails){
                 showAlert("Error", "Invalid email address.", AlertType.ERROR);
+            } else {
+                for (String recipient : recipients) {
+                    checkEmails &= checkEmails(recipient);
+                }
+                if (!checkEmails) {
+                    showAlert("Error", "Email not registered.", AlertType.ERROR);
+                } else {
+                    String subject = subjectField.getText();
+                    String message = messageArea.getText();
+                    String senderEmail = SessionStore.getInstance().getUserEmail();
+
+                    Email email = new Email(recipients, senderEmail, subject, message);
+                    synchronized (emailsToSend) {
+                        emailsToSend.add(email);
+                    }
+                    sendEmailToServer();
+                }
             }
         } finally {
             closeComposeWindow();
         }
     }
+        private boolean checkEmails(String email) {
+            try (Socket socket = new Socket("localhost", 12345);
+                 ObjectOutputStream objectOut = new ObjectOutputStream(socket.getOutputStream());
+                 ObjectInputStream objectIn = new ObjectInputStream(socket.getInputStream())) {
+
+                objectOut.writeObject(email);
+                objectOut.flush();
+
+                return (Boolean) objectIn.readObject();
+
+            } catch (IOException | ClassNotFoundException e) {
+                e.printStackTrace();
+                return false;
+            }
+        }
 
     private void sendEmailToServer() {
         if (isServerAvailable()) {

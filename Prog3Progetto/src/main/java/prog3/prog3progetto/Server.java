@@ -58,8 +58,8 @@ public class Server {
                         log("Executor did not terminate in the specified time.");
                         executor.shutdownNow();
                     }
-                } catch (InterruptedException ex) {
-                    log("Interrupted during shutdown: " + ex.getMessage());
+                } catch (InterruptedException e) {
+                    log("Interrupted during shutdown: " + e.getMessage());
                     executor.shutdownNow();
                     Thread.currentThread().interrupt();
                 }
