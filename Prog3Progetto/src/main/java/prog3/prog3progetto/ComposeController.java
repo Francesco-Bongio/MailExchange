@@ -61,19 +61,22 @@ public class ComposeController {
         }
     }
         private boolean checkEmails(String email) {
-            try (Socket socket = new Socket("localhost", 12345);
-                 ObjectOutputStream objectOut = new ObjectOutputStream(socket.getOutputStream());
-                 ObjectInputStream objectIn = new ObjectInputStream(socket.getInputStream())) {
+            if (isServerAvailable()) {
+                try (Socket socket = new Socket("localhost", 12345);
+                     ObjectOutputStream objectOut = new ObjectOutputStream(socket.getOutputStream());
+                     ObjectInputStream objectIn = new ObjectInputStream(socket.getInputStream())) {
 
-                objectOut.writeObject(email);
-                objectOut.flush();
+                    objectOut.writeObject(email);
+                    objectOut.flush();
 
-                return (Boolean) objectIn.readObject();
+                    return (Boolean) objectIn.readObject();
 
-            } catch (IOException | ClassNotFoundException e) {
-                e.printStackTrace();
-                return false;
+                } catch (IOException | ClassNotFoundException e) {
+                    e.printStackTrace();
+                    return false;
+                }
             }
+            return true;
         }
 
     private void sendEmailToServer() {
@@ -111,7 +114,7 @@ public class ComposeController {
                     e.printStackTrace();
                 }
             }
-        }, 30, 10, TimeUnit.SECONDS);
+        }, 10, 10, TimeUnit.SECONDS);
     }
 
     private void closeComposeWindow() {

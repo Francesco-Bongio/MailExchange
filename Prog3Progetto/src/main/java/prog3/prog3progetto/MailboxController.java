@@ -201,9 +201,6 @@ public class MailboxController implements Initializable {
     }
 
     private void sendDeleteRequestToServer() {
-        if (deleteEmailsScheduler == null || deleteEmailsScheduler.isShutdown()) {
-            deleteEmailsScheduler = Executors.newSingleThreadScheduledExecutor();
-        }
         if(isServerAvailable()) {
             try (Socket socket = new Socket("localhost", 12345);
                 ObjectOutputStream objectOut = new ObjectOutputStream(socket.getOutputStream())) {
@@ -212,7 +209,9 @@ public class MailboxController implements Initializable {
                 synchronized (emailsToDelete) {
                     emailsToDelete.clear();
                 }
-                deleteEmailsScheduler.shutdownNow();
+                if (deleteEmailsScheduler != null && !deleteEmailsScheduler.isShutdown()) {
+                    deleteEmailsScheduler.shutdownNow();
+                }
             } catch (IOException e) {
                 showAlert("Connection Error", "Failed to connect to the server.", Alert.AlertType.ERROR);
                 scheduleDeletionForEmails();
@@ -223,13 +222,18 @@ public class MailboxController implements Initializable {
     }
 
     private void scheduleDeletionForEmails() {
+        if (deleteEmailsScheduler == null || deleteEmailsScheduler.isShutdown()) {
+            deleteEmailsScheduler = Executors.newSingleThreadScheduledExecutor();
+        }
         deleteEmailsScheduler.scheduleWithFixedDelay(() -> {
-            try {
-                sendDeleteRequestToServer();
-            } catch (Exception e) {
-                showAlert("Error", "Error deleting emails, please try again later.", Alert.AlertType.ERROR);
+            if (!emailsToDelete.isEmpty() && isServerAvailable()) {
+                try {
+                    sendDeleteRequestToServer();
+                } catch (Exception e) {
+                    showAlert("Error", "Error deleting emails, please try again later.", Alert.AlertType.ERROR);
+                }
             }
-        }, 30, 10, TimeUnit.SECONDS);
+        }, 10, 10, TimeUnit.SECONDS);
     }
 
     @FXML
