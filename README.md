@@ -34,7 +34,6 @@ Prog3Progetto/
 
 ## 🔧 Installazione e Utilizzo
 ### 1️⃣ Requisiti
-Assicurati di avere installati:
 - [Java 17+](https://www.oracle.com/java/technologies/javase-jdk17-downloads.html)
 - [Apache Maven](https://maven.apache.org/install.html)
 
