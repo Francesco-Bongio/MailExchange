@@ -102,6 +102,6 @@ Questo progetto è distribuito sotto la licenza **MIT**.
 
 ---
 
-📩 **Autore:** Bongiovanni Francesco, Aimo Simone
+📩 **Autore:** Bongiovanni Francesco, Aimo Simone\
 🌍 **GitHub:** (https://github.com/Francesco-Bongio)
 
